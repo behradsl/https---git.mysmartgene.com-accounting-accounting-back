@@ -15,12 +15,162 @@ enum Position {
   DATA_ENTRY
 }
 
+enum LaboratoriesType {
+  LABORATORY
+  RESEARCH_CENTER
+  INDIVIDUAL
+}
+
+enum PaymentType {
+  FORMAL
+  INFORMAL
+}
+
+enum SettlementStatus {
+  SETTLED
+  PENDING
+  OVERDUE
+}
+
+enum InvoiceStatus {
+  ISSUED
+  NOT_ISSUED
+}
+
+enum SampleStatus {
+  PENDING
+  SHIPMENT
+  SHIPPED
+  RECEIVED_AT_LIBRARY
+  IN_TESTING
+  READY_FOR_DELIVERY
+  DELIVERED
+}
+
 model User {
-  id          String   @id @default(uuid()) @unique
-  name        String   @db.VarChar(255)
-  phoneNumber String   @db.VarChar(20)
-  email       String   @unique @db.VarChar(255)
+  id          String    @id @unique @default(uuid())
+  name        String    @db.VarChar(255)
+  phoneNumber String    @db.VarChar(20)
+  email       String    @unique @db.VarChar(255)
   position    Position
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime?
+
+  LaboratoryAccountManager Laboratory? @relation(name: "created-by")
+
+  LaboratoryCreatedBy Laboratory[] @relation(name: "account-manager")
+
+  RegistryCreatedBy Registry? @relation(name: "created-by")
+
+  RegistryUpdatedBy Registry[] @relation(name: "updated-by")
+}
+
+model Laboratory {
+  id          String           @id @unique @default(uuid())
+  name        String           @db.TinyText
+  type        LaboratoriesType
+  code        String           @unique
+  address     String           @db.Text
+  contactName String           @db.TinyText
+  phoneNumber String           @db.TinyText
+  email       String           @db.TinyText
+  paymentType PaymentType
+  fax         String?          @db.VarChar(50)
+
+  accountManager   User   @relation(name: "account-manager", fields: [accountManagerId], references: [id])
+  accountManagerId String @unique
+
+  createdBy       User   @relation(name: "created-by", fields: [UserIdCreatedBy], references: [id])
+  UserIdCreatedBy String @unique
+
   createdAt DateTime @default(now())
+
+  LaboratoryFormalPaymentInfo LaboratoryFormalPaymentInfo?
+
+  Registry Registry[]
+}
+
+model LaboratoryFormalPaymentInfo {
+  id String @id @unique @default(uuid())
+
+  Laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+  laboratoryId String     @unique
+
+  legalEntityName String @db.TinyText
+  economicNumber  String @db.TinyText
+
+  nationalId String @db.TinyText
+
+  fullAddress String @db.Text
+
+  province String @db.VarChar(100)
+
+  city String @db.TinyText
+
+  registrationNumber String @db.TinyText
+
+  postalCode String @db.TinyText
+}
+
+model Registry {
+  id    String @id @unique @default(uuid())
+  MotId String @db.TinyText
+  name  String @db.TinyText
+
+  Laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+  laboratoryId String     @unique
+
+  serviceType  String   @db.TinyText
+  kitType      String   @db.TinyText
+  urgentStatus Boolean?
+
+  price Decimal
+
+  description String? @db.Text
+
+  costumerRelationInfo String?
+  KoreaSendDate        DateTime?
+
+  resultReady     Boolean?
+  resultReadyTime DateTime?
+
+  settlementStatus SettlementStatus
+  invoiceStatus    InvoiceStatus
+
+  proformaSent Boolean?
+
+  proformaSentDate DateTime?
+
+  totalInvoiceAmount Decimal
+
+  installmentOne     Decimal?
+  installmentOneDate DateTime?
+
+  installmentTwo     Decimal?
+  installmentTwoDate DateTime?
+
+  installmentThree     Decimal?
+  installmentThreeDate DateTime?
+
+  totalPaid Decimal
+
+  paymentPercentage Decimal
+
+  settlementDate DateTime?
+
+  officialInvoiceSent     Boolean?
+  officialInvoiceSentDate DateTime?
+
+  sampleStatus SampleStatus
+
+  sendSeries String
+
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
+
+  createdBy       User   @relation(name: "created-by", fields: [userIdCreatedBy], references: [id])
+  userIdCreatedBy String @unique
+
+  updatedBy       User   @relation(name: "updated-by", fields: [userIdUpdatedBy], references: [id])
+  userIdUpdatedBy String @unique
 }
