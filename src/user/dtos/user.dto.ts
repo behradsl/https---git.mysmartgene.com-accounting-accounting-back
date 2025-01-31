@@ -54,10 +54,6 @@ export class CreateUserDto {
   @Length(7, 15)
   phoneNumber: string;
 
- 
-}
-
-export class PositionDto {
   @ApiProperty({
     description: 'Position of the user',
     enum: Position,
@@ -65,7 +61,12 @@ export class PositionDto {
   })
   @IsEnum(Position)
   Position: Position;
+  
+
+ 
 }
+
+
 
 export class UpdateUserDto extends UserIdDto {
   @ApiProperty({
@@ -104,6 +105,14 @@ export class UpdateUserDto extends UserIdDto {
   @IsString()
   @Length(7, 15)
   phoneNumber: string;
+
+  @ApiProperty({
+    description: 'Position of the user',
+    enum: Position,
+    example: Position.ADMIN,
+  })
+  @IsEnum(Position)
+  Position: Position;
 
   
 }

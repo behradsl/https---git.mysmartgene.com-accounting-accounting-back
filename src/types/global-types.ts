@@ -8,7 +8,7 @@ export interface UserSessionType {
       phoneNumber?: string;
       email?: string;
 
-      role: Position;
+      position: Position;
     };
   };
 }

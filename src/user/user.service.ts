@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
   CreateUserDto,
-  PositionDto,
+  
   UpdateUserDto,
   UserFindDto,
   UserIdDto,
@@ -14,9 +14,13 @@ import { Prisma } from '@prisma/client';
 export class UserService {
   constructor(private ormProvider: OrmProvider) {}
 
-  async createUser(args: CreateUserDto, { Position }: PositionDto) {
+  async createUser(args: CreateUserDto) {
+    
     try {
+      
       const hashedPassword = await hashPassword(args.password);
+      
+      
       return await this.ormProvider.user.create({
         data: {
           email: args.email,
@@ -25,7 +29,7 @@ export class UserService {
 
           phoneNumber: args.phoneNumber,
           name: args.name,
-          position: Position,
+          position: args.Position,
         },
       });
     } catch (error) {
@@ -33,7 +37,7 @@ export class UserService {
     }
   }
 
-  async UpdateUser(args: UpdateUserDto, { Position }: PositionDto) {
+  async UpdateUser(args: UpdateUserDto) {
     try {
       const hashedPassword = await hashPassword(args.password);
       return await this.ormProvider.user.update({
@@ -42,7 +46,7 @@ export class UserService {
           email: args.email,
 
           hashPassword: hashedPassword,
-
+          position:args.Position,
           phoneNumber: args.phoneNumber,
           name: args.name,
 
