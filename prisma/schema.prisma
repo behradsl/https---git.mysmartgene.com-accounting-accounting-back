@@ -51,10 +51,12 @@ model User {
   id          String    @id @unique @default(uuid())
   name        String    @db.VarChar(255)
   phoneNumber String    @db.VarChar(20)
+  hashPassword String
   email       String    @unique @db.VarChar(255)
   position    Position
   createdAt   DateTime  @default(now())
   updatedAt   DateTime?
+  removedAt   DateTime?
 
   LaboratoryAccountManager Laboratory? @relation(name: "created-by")
 
