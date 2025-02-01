@@ -30,6 +30,7 @@ export class UserService {
           phoneNumber: args.phoneNumber,
           name: args.name,
           position: args.Position,
+          createdAt:new Date()
         },
       });
     } catch (error) {
