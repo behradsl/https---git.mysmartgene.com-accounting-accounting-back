@@ -86,6 +86,7 @@ model Laboratory {
   UserIdCreatedBy String @unique
 
   createdAt DateTime @default(now())
+  updatedAt DateTime?
 
   LaboratoryFormalPaymentInfo LaboratoryFormalPaymentInfo?
 

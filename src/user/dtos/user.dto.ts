@@ -1,15 +1,6 @@
-import {
-  IsString,
-  IsEmail,
-  IsInt,
-  IsBoolean,
-  IsEnum,
-  Length,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsString, IsEmail, IsEnum, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import {  Position } from '@prisma/client';
+import { Position } from '@prisma/client';
 
 export class UserIdDto {
   @ApiProperty({ description: 'id of user', example: '' })
@@ -61,12 +52,7 @@ export class CreateUserDto {
   })
   @IsEnum(Position)
   Position: Position;
-  
-
- 
 }
-
-
 
 export class UpdateUserDto extends UserIdDto {
   @ApiProperty({
@@ -113,8 +99,6 @@ export class UpdateUserDto extends UserIdDto {
   })
   @IsEnum(Position)
   Position: Position;
-
-  
 }
 
 export class UserFindDto {
@@ -143,7 +127,5 @@ export class UserFindDto {
   })
   @IsString()
   @Length(7, 15)
-  phoneNumber?: string; 
-
- 
+  phoneNumber?: string;
 }
