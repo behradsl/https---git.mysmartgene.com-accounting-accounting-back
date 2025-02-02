@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
   CreateFormalPaymentInfoDto,
@@ -148,5 +152,16 @@ export class LaboratoryService {
       Registry: true,
       type: true,
     };
+  }
+
+  async findByName(name: string) {
+    try {
+      return await this.ormProvider.laboratory.findFirst({
+        where: { name: name },
+        select:{id:true}
+      });
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
   }
 }
