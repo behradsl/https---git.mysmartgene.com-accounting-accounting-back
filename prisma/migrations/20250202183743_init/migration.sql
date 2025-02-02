@@ -1,4 +1,21 @@
 -- CreateTable
+CREATE TABLE `User` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `phoneNumber` VARCHAR(20) NOT NULL,
+    `hashPassword` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(255) NOT NULL,
+    `position` ENUM('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE', 'DATA_ENTRY') NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NULL,
+    `removedAt` DATETIME(3) NULL,
+
+    UNIQUE INDEX `User_id_key`(`id`),
+    UNIQUE INDEX `User_email_key`(`email`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `Laboratory` (
     `id` VARCHAR(191) NOT NULL,
     `name` TINYTEXT NOT NULL,
@@ -13,11 +30,10 @@ CREATE TABLE `Laboratory` (
     `accountManagerId` VARCHAR(191) NOT NULL,
     `UserIdCreatedBy` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NULL,
 
     UNIQUE INDEX `Laboratory_id_key`(`id`),
     UNIQUE INDEX `Laboratory_code_key`(`code`),
-    UNIQUE INDEX `Laboratory_accountManagerId_key`(`accountManagerId`),
-    UNIQUE INDEX `Laboratory_UserIdCreatedBy_key`(`UserIdCreatedBy`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -74,13 +90,11 @@ CREATE TABLE `Registry` (
     `sendSeries` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NULL,
-    `userIdCreatedBy` VARCHAR(191) NOT NULL,
-    `userIdUpdatedBy` VARCHAR(191) NOT NULL,
+    `userIdRegistryCreatedBy` VARCHAR(191) NOT NULL,
+    `userIdRegistryUpdatedBy` VARCHAR(191) NULL,
 
     UNIQUE INDEX `Registry_id_key`(`id`),
     UNIQUE INDEX `Registry_laboratoryId_key`(`laboratoryId`),
-    UNIQUE INDEX `Registry_userIdCreatedBy_key`(`userIdCreatedBy`),
-    UNIQUE INDEX `Registry_userIdUpdatedBy_key`(`userIdUpdatedBy`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -97,7 +111,7 @@ ALTER TABLE `LaboratoryFormalPaymentInfo` ADD CONSTRAINT `LaboratoryFormalPaymen
 ALTER TABLE `Registry` ADD CONSTRAINT `Registry_laboratoryId_fkey` FOREIGN KEY (`laboratoryId`) REFERENCES `Laboratory`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Registry` ADD CONSTRAINT `Registry_userIdCreatedBy_fkey` FOREIGN KEY (`userIdCreatedBy`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Registry` ADD CONSTRAINT `Registry_userIdRegistryCreatedBy_fkey` FOREIGN KEY (`userIdRegistryCreatedBy`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Registry` ADD CONSTRAINT `Registry_userIdUpdatedBy_fkey` FOREIGN KEY (`userIdUpdatedBy`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Registry` ADD CONSTRAINT `Registry_userIdRegistryUpdatedBy_fkey` FOREIGN KEY (`userIdRegistryUpdatedBy`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

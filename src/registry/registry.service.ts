@@ -1,10 +1,19 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
-import { CreateRegistryDto, RegistryIdDto, UpdateRegistryDto } from './dtos/registry.dto';
+import {
+  CreateRegistryDto,
+  RegistryIdDto,
+  UpdateRegistryDto,
+} from './dtos/registry.dto';
+
+
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class RegistryService {
-  constructor(private readonly ormProvider: OrmProvider) {}
+  constructor(
+    private readonly ormProvider: OrmProvider,
+      ) {}
 
   async createRegistry(args: CreateRegistryDto, userId: string) {
     try {
@@ -51,7 +60,8 @@ export class RegistryService {
             : null,
 
           totalPaid: args.totalPaid,
-          paymentPercentage: args.paymentPercentage,
+          paymentPercentage:
+            (Number(args.totalPaid) / Number(args.totalInvoiceAmount)) * 100,
           settlementDate: args.settlementDate
             ? new Date(args.settlementDate)
             : null,
@@ -68,7 +78,7 @@ export class RegistryService {
           updatedAt: null,
 
           Laboratory: { connect: { id: args.laboratoryId } },
-          createdBy: { connect: { id: userId } },
+          registryCreatedBy: { connect: { id: userId } },
         },
       });
     } catch (error) {
@@ -78,57 +88,74 @@ export class RegistryService {
 
   async updateRegistry(args: UpdateRegistryDto, userId: string) {
     try {
-        return await this.ormProvider.registry.update({
-            where: { id: args.id },
-            data: {
-                MotId: args.MotId,
-                name: args.name,
-                serviceType: args.serviceType,
-                kitType: args.kitType,
-                urgentStatus: args.urgentStatus,
+      return await this.ormProvider.registry.update({
+        where: { id: args.id },
+        data: {
+          MotId: args.MotId,
+          name: args.name,
+          serviceType: args.serviceType,
+          kitType: args.kitType,
+          urgentStatus: args.urgentStatus,
 
-                price: args.price,
-                description: args.description,
+          price: args.price,
+          description: args.description,
 
-                costumerRelationInfo: args.costumerRelationInfo,
-                KoreaSendDate: args.KoreaSendDate ? new Date(args.KoreaSendDate) : null,
-                resultReady: args.resultReady,
-                resultReadyTime: args.resultReadyTime ? new Date(args.resultReadyTime) : null,
+          costumerRelationInfo: args.costumerRelationInfo,
+          KoreaSendDate: args.KoreaSendDate
+            ? new Date(args.KoreaSendDate)
+            : null,
+          resultReady: args.resultReady,
+          resultReadyTime: args.resultReadyTime
+            ? new Date(args.resultReadyTime)
+            : null,
 
-                settlementStatus: args.settlementStatus,
-                invoiceStatus: args.invoiceStatus,
+          settlementStatus: args.settlementStatus,
+          invoiceStatus: args.invoiceStatus,
 
-                proformaSent: args.proformaSent,
-                proformaSentDate: args.proformaSentDate ? new Date(args.proformaSentDate) : null,
+          proformaSent: args.proformaSent,
+          proformaSentDate: args.proformaSentDate
+            ? new Date(args.proformaSentDate)
+            : null,
 
-                totalInvoiceAmount: args.totalInvoiceAmount,
-                installmentOne: args.installmentOne,
-                installmentOneDate: args.installmentOneDate ? new Date(args.installmentOneDate) : null,
-                installmentTwo: args.installmentTwo,
-                installmentTwoDate: args.installmentTwoDate ? new Date(args.installmentTwoDate) : null,
-                installmentThree: args.installmentThree,
-                installmentThreeDate: args.installmentThreeDate ? new Date(args.installmentThreeDate) : null,
+          totalInvoiceAmount: args.totalInvoiceAmount,
+          installmentOne: args.installmentOne,
+          installmentOneDate: args.installmentOneDate
+            ? new Date(args.installmentOneDate)
+            : null,
+          installmentTwo: args.installmentTwo,
+          installmentTwoDate: args.installmentTwoDate
+            ? new Date(args.installmentTwoDate)
+            : null,
+          installmentThree: args.installmentThree,
+          installmentThreeDate: args.installmentThreeDate
+            ? new Date(args.installmentThreeDate)
+            : null,
 
-                totalPaid: args.totalPaid,
-                paymentPercentage: args.paymentPercentage,
-                settlementDate: args.settlementDate ? new Date(args.settlementDate) : null,
+          totalPaid: args.totalPaid,
+          paymentPercentage:
+            (Number(args.totalPaid) / Number(args.totalInvoiceAmount)) * 100,
+          settlementDate: args.settlementDate
+            ? new Date(args.settlementDate)
+            : null,
 
-                officialInvoiceSent: args.officialInvoiceSent,
-                officialInvoiceSentDate: args.officialInvoiceSentDate ? new Date(args.officialInvoiceSentDate) : null,
+          officialInvoiceSent: args.officialInvoiceSent,
+          officialInvoiceSentDate: args.officialInvoiceSentDate
+            ? new Date(args.officialInvoiceSentDate)
+            : null,
 
-                sampleStatus: args.sampleStatus,
-                sendSeries: args.sendSeries,
+          sampleStatus: args.sampleStatus,
+          sendSeries: args.sendSeries,
 
-                updatedAt: new Date(),
-                updatedBy: { connect: { id: userId } } 
-            },
-        });
+          updatedAt: new Date(),
+          registryUpdatedBy: { connect: { id: userId } },
+        },
+      });
     } catch (error) {
-        throw new BadRequestException(error.message);
+      throw new BadRequestException(error.message);
     }
-}
+  }
 
-async findOne(args: RegistryIdDto) {
+  async findOne(args: RegistryIdDto) {
     try {
       return await this.ormProvider.registry.findUnique({
         where: { id: args.id },
@@ -137,7 +164,7 @@ async findOne(args: RegistryIdDto) {
       throw new BadRequestException(error.message);
     }
   }
-  
+
   async findMany() {
     try {
       return await this.ormProvider.registry.findMany();
@@ -146,4 +173,5 @@ async findOne(args: RegistryIdDto) {
     }
   }
 
+  
 }

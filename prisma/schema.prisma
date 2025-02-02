@@ -48,23 +48,23 @@ enum SampleStatus {
 }
 
 model User {
-  id          String    @id @unique @default(uuid())
-  name        String    @db.VarChar(255)
-  phoneNumber String    @db.VarChar(20)
+  id           String    @id @unique @default(uuid())
+  name         String    @db.VarChar(255)
+  phoneNumber  String    @db.VarChar(20)
   hashPassword String
-  email       String    @unique @db.VarChar(255)
-  position    Position
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime?
-  removedAt   DateTime?
+  email        String    @unique @db.VarChar(255)
+  position     Position
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime?
+  removedAt    DateTime?
 
-  LaboratoryAccountManager Laboratory? @relation(name: "created-by")
+  LaboratoryAccountManager Laboratory[] @relation(name: "account-manager")
 
-  LaboratoryCreatedBy Laboratory[] @relation(name: "account-manager")
+  LaboratoryCreatedBy Laboratory[] @relation(name: "created-by")
 
-  RegistryCreatedBy Registry? @relation(name: "created-by")
+  RegistryCreatedBy Registry[] @relation(name: "registry-created-by")
 
-  RegistryUpdatedBy Registry[] @relation(name: "updated-by")
+  RegistryUpdatedBy Registry[] @relation(name: "registry-updated-by")
 }
 
 model Laboratory {
@@ -80,12 +80,12 @@ model Laboratory {
   fax         String?          @db.VarChar(50)
 
   accountManager   User   @relation(name: "account-manager", fields: [accountManagerId], references: [id])
-  accountManagerId String @unique
+  accountManagerId String
 
   createdBy       User   @relation(name: "created-by", fields: [UserIdCreatedBy], references: [id])
-  UserIdCreatedBy String @unique
+  UserIdCreatedBy String 
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
 
   LaboratoryFormalPaymentInfo LaboratoryFormalPaymentInfo?
@@ -121,7 +121,7 @@ model Registry {
   name  String @db.TinyText
 
   Laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
-  laboratoryId String     @unique
+  laboratoryId String    
 
   serviceType  String   @db.TinyText
   kitType      String   @db.TinyText
@@ -171,9 +171,9 @@ model Registry {
   createdAt DateTime  @default(now())
   updatedAt DateTime?
 
-  createdBy       User   @relation(name: "created-by", fields: [userIdCreatedBy], references: [id])
-  userIdCreatedBy String @unique
+  registryCreatedBy       User   @relation(name: "registry-created-by", fields: [userIdRegistryCreatedBy], references: [id])
+  userIdRegistryCreatedBy String 
 
-  updatedBy       User?   @relation(name: "updated-by", fields: [userIdUpdatedBy], references: [id])
-  userIdUpdatedBy String? @unique
+  registryUpdatedBy       User?   @relation(name: "registry-updated-by", fields: [userIdRegistryUpdatedBy], references: [id])
+  userIdRegistryUpdatedBy String? 
 }

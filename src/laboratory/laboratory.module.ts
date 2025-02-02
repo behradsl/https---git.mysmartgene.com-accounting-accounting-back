@@ -5,6 +5,7 @@ import { OrmProvider } from 'src/providers/orm.provider';
 
 @Module({
   providers: [LaboratoryService ,OrmProvider],
-  controllers: [LaboratoryController]
+  controllers: [LaboratoryController],
+  exports:[LaboratoryService]
 })
 export class LaboratoryModule {}
