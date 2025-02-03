@@ -33,7 +33,7 @@ export class UserAuthService {
 
   async authByPassword({ username, password }: UserAuthByPassword) {
     const { hashPassword, ...user } = await this.getUserFullInfo({
-      OR: [{ email: username }, { phoneNumber: username }],
+      OR: [{ email: username }],
     });
 
     const checkPassword = await this.comparePassword({

@@ -4,7 +4,7 @@ import { IsString } from 'class-validator';
 export class AuthSigninDto {
   @IsString()
   @ApiProperty({
-    example: 'example@example.com  or 09121111111',
+    example: 'admin@something.com',
     default: '',
     type: 'string',
   })
@@ -12,7 +12,7 @@ export class AuthSigninDto {
 
   @IsString()
   @ApiProperty({
-    example: '12345678',
+    example: '123456',
     default: '',
     type: 'string',
   })

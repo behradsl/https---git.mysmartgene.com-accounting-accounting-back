@@ -12,7 +12,7 @@ export class userAuthComparePasswordDto {
 export class UserAuthByPassword {
   @IsString()
   @ApiProperty({
-    example: 'example@example.com  or 09121111111',
+    example: 'admin@something.com',
     default: '',
     type: 'string',
   })

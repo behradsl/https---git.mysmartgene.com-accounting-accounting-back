@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const admin = await prisma.user.upsert({
-    where: { email: 'example@example.com' },
+    where: { email: 'admin@something.com' },
     update: {
       name: 'admin',
       hashPassword: await hashPassword('123456'),
@@ -14,7 +14,7 @@ async function main() {
     },
     create: {
       name: 'admin',
-      email: 'example@example.com',
+      email: 'admin@something.com',
       hashPassword: await hashPassword('123456'),
       position: 'ADMIN',
       phoneNumber: '09121111111',
