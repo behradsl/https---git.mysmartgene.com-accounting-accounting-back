@@ -33,7 +33,7 @@ export class AuthController {
   }
 
   @Post('user/signout')
-  async signout(@Req() request: Request) {
+  signout(@Req() request: Request) {
     request.session.destroy(() => {
       return {
         message: 'Logout successful',
@@ -41,6 +41,4 @@ export class AuthController {
       };
     });
   }
-
- 
 }

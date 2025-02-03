@@ -6,14 +6,11 @@ import {
   UpdateRegistryDto,
 } from './dtos/registry.dto';
 
-
 import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class RegistryService {
-  constructor(
-    private readonly ormProvider: OrmProvider,
-      ) {}
+  constructor(private readonly ormProvider: OrmProvider) {}
 
   async createRegistry(args: CreateRegistryDto, userId: string) {
     try {
@@ -172,6 +169,4 @@ export class RegistryService {
       throw new BadRequestException(error.message);
     }
   }
-
-  
 }

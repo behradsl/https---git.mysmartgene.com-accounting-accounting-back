@@ -8,8 +8,8 @@ export class LocalGuard extends AuthGuard('local') {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const isAuthenticated = request.isAuthenticated();
+    const request: any = context.switchToHttp().getRequest();
+    const isAuthenticated: boolean = request.isAuthenticated();
 
     if (isAuthenticated) return isAuthenticated;
 

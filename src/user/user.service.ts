@@ -2,7 +2,6 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
   CreateUserDto,
-  
   UpdateUserDto,
   UserFindDto,
   UserIdDto,
@@ -15,12 +14,9 @@ export class UserService {
   constructor(private ormProvider: OrmProvider) {}
 
   async createUser(args: CreateUserDto) {
-    
     try {
-      
       const hashedPassword = await hashPassword(args.password);
-      
-      
+
       return await this.ormProvider.user.create({
         data: {
           email: args.email,
@@ -30,7 +26,7 @@ export class UserService {
           phoneNumber: args.phoneNumber,
           name: args.name,
           position: args.Position,
-          createdAt:new Date()
+          createdAt: new Date(),
         },
       });
     } catch (error) {
@@ -47,7 +43,7 @@ export class UserService {
           email: args.email,
 
           hashPassword: hashedPassword,
-          position:args.Position,
+          position: args.Position,
           phoneNumber: args.phoneNumber,
           name: args.name,
 

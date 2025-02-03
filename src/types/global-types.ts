@@ -1,4 +1,9 @@
-import { InvoiceStatus, Position, SampleStatus, SettlementStatus } from '@prisma/client';
+import {
+  InvoiceStatus,
+  Position,
+  SampleStatus,
+  SettlementStatus,
+} from '@prisma/client';
 
 export interface UserSessionType {
   cookie: Record<string, any>;
@@ -14,18 +19,16 @@ export interface UserSessionType {
 }
 
 export interface RegistryType {
-  
   MotId: string;
   name: string;
 
-  Laboratory: string
-  
+  Laboratory: string;
 
   serviceType: string;
   kitType: string;
   urgentStatus?: boolean;
 
-  price: number; 
+  price: number;
 
   description?: string;
 
@@ -35,25 +38,24 @@ export interface RegistryType {
   resultReady?: boolean;
   resultReadyTime?: Date;
 
-  settlementStatus: SettlementStatus; 
+  settlementStatus: SettlementStatus;
   invoiceStatus: InvoiceStatus;
 
   proformaSent?: boolean;
   proformaSentDate?: Date;
 
-  totalInvoiceAmount: number; 
+  totalInvoiceAmount: number;
 
-  installmentOne?: number; 
+  installmentOne?: number;
   installmentOneDate?: Date;
 
-  installmentTwo?: number; 
+  installmentTwo?: number;
   installmentTwoDate?: Date;
 
-  installmentThree?: number; 
+  installmentThree?: number;
   installmentThreeDate?: Date;
 
-  totalPaid: number; 
-   
+  totalPaid: number;
 
   settlementDate?: Date;
 
@@ -63,10 +65,4 @@ export interface RegistryType {
   sampleStatus: SampleStatus;
 
   sendSeries: string;
-
-  
 }
-
-
-
-

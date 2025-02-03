@@ -10,16 +10,8 @@ import { LocalGuard } from './guards/local.guard';
 import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [
-    UserModule,
-    PassportModule.register({ session: true }),
-    ],
-  providers: [
-    AuthService,
-    LocalStrategy,
-    LocalGuard,
-    SessionSerializer,
-    ],
+  imports: [UserModule, PassportModule.register({ session: true })],
+  providers: [AuthService, LocalStrategy, LocalGuard, SessionSerializer],
   controllers: [AuthController],
 })
 export class AuthModule {}

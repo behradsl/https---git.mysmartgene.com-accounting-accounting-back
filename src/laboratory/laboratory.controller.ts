@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Session, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Session,
+  UseGuards,
+} from '@nestjs/common';
 import { LaboratoryService } from './laboratory.service';
 import { ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';

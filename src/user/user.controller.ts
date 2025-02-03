@@ -3,10 +3,14 @@ import { ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 
-
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto, UserFindDto, UserIdDto } from './dtos/user.dto';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  UserFindDto,
+  UserIdDto,
+} from './dtos/user.dto';
 
 @ApiTags('user')
 @UseGuards(LocalGuard, RolesGuard)
@@ -17,8 +21,6 @@ export class UserController {
   @Roles('ADMIN')
   @Post('create')
   async create(@Body() args: CreateUserDto) {
-   
-    
     return this.userService.createUser(args);
   }
 

@@ -158,7 +158,7 @@ export class LaboratoryService {
     try {
       return await this.ormProvider.laboratory.findFirst({
         where: { name: name },
-        select:{id:true}
+        select: { id: true },
       });
     } catch (error) {
       throw new NotFoundException(error);

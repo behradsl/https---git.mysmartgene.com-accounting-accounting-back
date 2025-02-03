@@ -6,7 +6,6 @@ import * as XLSX from 'xlsx';
 import { Prisma } from '@prisma/client';
 import { rawDataToRegistryType } from './utilities/registryType.utilities';
 
-
 @Injectable()
 export class ImportRegistryService {
   constructor(
@@ -57,8 +56,6 @@ export class ImportRegistryService {
       });
       const correctPArsedData = rawDataToRegistryType(parsedData);
 
-      
-
       if (correctPArsedData) {
         const dataToImport: Prisma.RegistryCreateManyInput[] = [];
         const skippedMotIds: string[] = [];
@@ -67,7 +64,7 @@ export class ImportRegistryService {
           const existingMot = await this.ormProvider.registry.findFirst({
             where: { MotId: data.MotId },
           });
-  
+
           if (existingMot) {
             skippedMotIds.push(data.MotId);
             continue;
@@ -81,7 +78,7 @@ export class ImportRegistryService {
             );
           }
 
-          dataToImport.push( {
+          dataToImport.push({
             MotId: data.MotId,
             name: data.name,
             laboratoryId: laboratory.id,

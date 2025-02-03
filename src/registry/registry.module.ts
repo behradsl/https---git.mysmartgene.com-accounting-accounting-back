@@ -7,10 +7,14 @@ import { LaboratoryModule } from 'src/laboratory/laboratory.module';
 import { ImportRegistryService } from './import-registry.service';
 import { RegistryExportService } from './registry-export.service';
 
-
 @Module({
-  imports:[LaboratoryModule],
-  providers: [RegistryService ,OrmProvider, ImportRegistryService, RegistryExportService],
-  controllers: [RegistryController]
+  imports: [LaboratoryModule],
+  providers: [
+    RegistryService,
+    OrmProvider,
+    ImportRegistryService,
+    RegistryExportService,
+  ],
+  controllers: [RegistryController],
 })
 export class RegistryModule {}
