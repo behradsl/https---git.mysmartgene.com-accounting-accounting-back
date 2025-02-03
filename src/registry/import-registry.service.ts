@@ -3,7 +3,8 @@ import { LaboratoryService } from 'src/laboratory/laboratory.service';
 import { OrmProvider } from 'src/providers/orm.provider';
 import * as XLSX from 'xlsx';
 import { RegistryType } from 'src/types/global-types';
-import { Prisma } from '@prisma/client';
+import { InvoiceStatus, Prisma, SampleStatus, SettlementStatus } from '@prisma/client';
+import { rawDataToRegistryType } from './utilities/registryType.utilities';
 
 @Injectable()
 export class ImportRegistryService {
@@ -49,45 +50,19 @@ export class ImportRegistryService {
         'sendSeries',
       ];
 
-      const parsedData: RegistryType[] = XLSX.utils
-        .sheet_to_json(sheet, {
-          header: headers,
-          range: 1,
-        })
-        .map((data: any) => {
-          return {
-            ...data,
-            price: parseFloat(data.price) || 0,
-            totalInvoiceAmount: parseFloat(data.totalInvoiceAmount) || 0,
-            installmentOne: data.installmentOne
-              ? parseFloat(data.installmentOne)
-              : null,
-            installmentTwo: data.installmentTwo
-              ? parseFloat(data.installmentTwo)
-              : null,
-            installmentThree: data.installmentThree
-              ? parseFloat(data.installmentThree)
-              : null,
-            totalPaid: parseFloat(data.totalPaid) || 0,
-            KoreaSendDate: this.parseDate(data.KoreaSendDate),
-            resultReadyTime: this.parseDate(data.resultReadyTime),
-            proformaSentDate: this.parseDate(data.proformaSentDate),
-            installmentOneDate: this.parseDate(data.installmentOneDate),
-            installmentTwoDate: this.parseDate(data.installmentTwoDate),
-            installmentThreeDate: this.parseDate(data.installmentThreeDate),
-            settlementDate: this.parseDate(data.settlementDate),
-            officialInvoiceSentDate: this.parseDate(
-              data.officialInvoiceSentDate,
-            ),
-            sendSeries: String(data.sentSeries),
-          };
-        });
+      const parsedData = XLSX.utils.sheet_to_json(sheet, {
+        header: headers,
+        range: 1,
+      });
+      const correctPArsedData =rawDataToRegistryType(parsedData)
 
-      console.log(parsedData);
+      console.log(correctPArsedData);
 
-      const dataToImport: Prisma.RegistryCreateManyInput[] = await Promise.all(
-        parsedData.map(async (data) => {
-          const laboratory = await this.laboratoryService.findByName(
+      if(correctPArsedData){const dataToImport: Prisma.RegistryCreateManyInput[] = await Promise.all(
+        correctPArsedData.map(async (data) => {
+          
+          
+          const laboratory = await  this.laboratoryService.findByName(
             data.Laboratory,
           );
           if (!laboratory) {
@@ -97,6 +72,7 @@ export class ImportRegistryService {
           }
 
           return {
+            
             MotId: data.MotId,
             name: data.name,
             laboratoryId: laboratory.id,
@@ -136,22 +112,16 @@ export class ImportRegistryService {
         }),
       );
 
-      return await this.ormProvider.registry.createMany({ data: dataToImport });
+      return await  this.ormProvider.registry.createMany({ data: dataToImport });
+    }
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
 
-  parseDate(dateString: string | number | Date): Date | null {
-    if (!dateString) return null; // Skip empty values
-    if (dateString instanceof Date) return dateString; // Already a Date object
-    if (typeof dateString === 'number') {
-      return new Date((dateString - 25569) * 86400 * 1000);
-    }
-    if (typeof dateString === 'string') {
-      const parsedDate = new Date(dateString);
-      return isNaN(parsedDate.getTime()) ? null : parsedDate;
-    }
-    return null;
-  }
+  
+
+  
+
+  
 }
