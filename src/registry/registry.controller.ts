@@ -5,13 +5,14 @@ import {
   Get,
   Param,
   Post,
+  Res,
   Session,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
@@ -25,6 +26,8 @@ import { UserSessionType } from 'src/types/global-types';
 import { RegistryService } from './registry.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportRegistryService } from './import-registry.service';
+import { RegistryExportService } from './registry-export.service';
+import { Response } from 'express'
 
 @ApiTags('registry')
 @UseGuards(LocalGuard, RolesGuard)
@@ -33,6 +36,7 @@ export class RegistryController {
   constructor(
     private readonly registryService: RegistryService,
     private readonly importRegistryService: ImportRegistryService,
+    private readonly registryExportService:RegistryExportService
   ) {}
 
   @Roles('ADMIN', 'DATA_ENTRY')
@@ -94,5 +98,17 @@ export class RegistryController {
       file,
       session.passport.user.id,
     );
+  }
+
+  @Roles('ADMIN', 'FINANCE_MANAGER')
+  @Get('export')
+  @ApiOperation({ summary: 'Export Registry data to an Excel file' })
+  @ApiResponse({
+    status: 200,
+    description: 'Excel file containing registry data',
+    content: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {} },
+  })
+  async exportToExcel(@Res() res: Response) {
+    await this.registryExportService.generateExcel(res);
   }
 }
