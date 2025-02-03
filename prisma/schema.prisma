@@ -117,7 +117,7 @@ model LaboratoryFormalPaymentInfo {
 
 model Registry {
   id    String @id @unique @default(uuid())
-  MotId String @db.TinyText
+  MotId String @unique
   name  String @db.TinyText
 
   Laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
