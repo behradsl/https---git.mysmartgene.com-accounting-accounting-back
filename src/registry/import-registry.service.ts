@@ -2,9 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { LaboratoryService } from 'src/laboratory/laboratory.service';
 import { OrmProvider } from 'src/providers/orm.provider';
 import * as XLSX from 'xlsx';
-import { RegistryType } from 'src/types/global-types';
-import { InvoiceStatus, Prisma, SampleStatus, SettlementStatus } from '@prisma/client';
+
+import { Prisma } from '@prisma/client';
 import { rawDataToRegistryType } from './utilities/registryType.utilities';
+import { RegistryType } from 'src/types/global-types';
 
 @Injectable()
 export class ImportRegistryService {
@@ -54,15 +55,24 @@ export class ImportRegistryService {
         header: headers,
         range: 1,
       });
-      const correctPArsedData =rawDataToRegistryType(parsedData)
+      const correctPArsedData = rawDataToRegistryType(parsedData);
 
-      console.log(correctPArsedData);
+      
 
-      if(correctPArsedData){const dataToImport: Prisma.RegistryCreateManyInput[] = await Promise.all(
-        correctPArsedData.map(async (data) => {
-          
-          
-          const laboratory = await  this.laboratoryService.findByName(
+      if (correctPArsedData) {
+        const dataToImport: Prisma.RegistryCreateManyInput[] = [];
+        const skippedMotIds: string[] = [];
+
+        for (const data of correctPArsedData) {
+          const existingMot = await this.ormProvider.registry.findFirst({
+            where: { MotId: data.MotId },
+          });
+  
+          if (existingMot) {
+            skippedMotIds.push(data.MotId);
+            continue;
+          }
+          const laboratory = await this.laboratoryService.findByName(
             data.Laboratory,
           );
           if (!laboratory) {
@@ -71,8 +81,7 @@ export class ImportRegistryService {
             );
           }
 
-          return {
-            
+          dataToImport.push( {
             MotId: data.MotId,
             name: data.name,
             laboratoryId: laboratory.id,
@@ -108,20 +117,22 @@ export class ImportRegistryService {
             createdAt: new Date(),
             updatedAt: null,
             userIdRegistryCreatedBy: userId,
-          };
-        }),
-      );
+          });
+        }
 
-      return await  this.ormProvider.registry.createMany({ data: dataToImport });
-    }
+        await this.ormProvider.registry.createMany({
+          data: dataToImport,
+        });
+        return {
+          message: 'Import completed successfully.',
+          skippedRows:
+            skippedMotIds.length > 0
+              ? `Rows with MotId(s) ${skippedMotIds.join(', ')} already exist in the database and were skipped.`
+              : 'No duplicates found.',
+        };
+      }
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
-
-  
-
-  
-
-  
 }
