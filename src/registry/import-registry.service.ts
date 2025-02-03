@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 
 import { Prisma } from '@prisma/client';
 import { rawDataToRegistryType } from './utilities/registryType.utilities';
-import { RegistryType } from 'src/types/global-types';
+
 
 @Injectable()
 export class ImportRegistryService {
