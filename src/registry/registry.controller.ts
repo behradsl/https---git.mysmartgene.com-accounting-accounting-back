@@ -34,6 +34,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportRegistryService } from './import-registry.service';
 import { RegistryExportService } from './registry-export.service';
 import { Response } from 'express';
+import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
 
 @ApiTags('registry')
 @UseGuards(LocalGuard, RolesGuard)
@@ -75,7 +76,8 @@ export class RegistryController {
     return await this.registryService.findOne(args);
   }
 
-  @Roles('ADMIN', 'DATA_ENTRY')
+  @UseInterceptors(FieldVisibilityInterceptor)
+  @Roles('ADMIN', 'FINANCE_MANAGER' , 'SALES_MANAGER' ,'SALES_REPRESENTATIVE')
   @Get('findMany')
   async findMany() {
     return await this.registryService.findMany();

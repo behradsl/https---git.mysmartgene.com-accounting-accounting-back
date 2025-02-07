@@ -187,12 +187,14 @@ model Registry {
   userIdRegistryUpdatedBy String? 
 }
 
-model FieldAccess {
+model RegistryFieldAccess {
   id       String   @id @unique @default(uuid())
   position Position 
-  field    String   @db.VarChar(255) 
+  registryField    String   @db.VarChar(255) 
   access   AccessType 
 
   updatedAt DateTime @default(now())
+
+  @@unique(fields: [position , registryField] , name: "position_registryField")
 }
 
