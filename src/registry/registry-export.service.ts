@@ -4,6 +4,7 @@ import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 import { RegistryFieldAccessService } from 'src/registry-field-access/registry-field-access.service';
 import { Position } from '@prisma/client';
+import { generate } from 'rxjs';
 
 @Injectable()
 export class RegistryExportService {
@@ -60,7 +61,31 @@ export class RegistryExportService {
     await workbook.xlsx.write(res);
     res.end();
   }
+
+  async generateEmptyExcel(res: Response){
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Registry Data');
+
+    worksheet.addRow(Object.values(PersianRegistryFieldNames));
+
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=registries.xlsx',
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+    
+  }
 }
+
+
 
 const PersianRegistryFieldNames = {
   MotId: 'شناسه MOT',
@@ -94,10 +119,9 @@ const PersianRegistryFieldNames = {
   officialInvoiceSentDate: 'تاریخ ارسال فاکتور رسمی',
   sampleStatus: 'وضعیت نمونه',
   sendSeries: 'سری ارسال',
-  createdAt: 'تاریخ ایجاد',
-  updatedAt: 'تاریخ بروزرسانی',
-  registryCreatedBy: 'ایجاد شده توسط',
-  userIdRegistryCreatedBy: 'شناسه کاربر ایجاد کننده',
-  registryUpdatedBy: 'بروزرسانی شده توسط',
-  userIdRegistryUpdatedBy: 'شناسه کاربر بروزرسانی کننده',
+  
 };
+function generateEmptyExcel() {
+  throw new Error('Function not implemented.');
+}
+

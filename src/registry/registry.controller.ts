@@ -123,4 +123,19 @@ export class RegistryController {
     const position = session.passport.user.position
     await this.registryExportService.generateExcel(res ,position );
   }
+
+  @Roles('ADMIN', 'DATA_ENTRY')
+  @Get('exportEmpty')
+  @ApiOperation({ summary: 'Export empty correct columns Excel file' })
+  @ApiResponse({
+    status: 200,
+    description: 'empty correct columns Excel file',
+    content: {
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {},
+    },
+  })
+  async generateEmptyExcel(@Res() res: Response ) {
+    
+    await this.registryExportService.generateEmptyExcel(res );
+  }
 }
