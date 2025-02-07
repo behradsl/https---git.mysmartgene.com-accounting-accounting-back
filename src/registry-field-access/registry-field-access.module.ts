@@ -5,6 +5,7 @@ import { OrmProvider } from 'src/providers/orm.provider';
 
 @Module({
   providers: [RegistryFieldAccessService , OrmProvider],
-  controllers: [RegistryFieldAccessController]
+  controllers: [RegistryFieldAccessController],
+  exports:[RegistryFieldAccessService]
 })
 export class RegistryFieldAccessModule {}

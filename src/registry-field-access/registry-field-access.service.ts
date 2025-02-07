@@ -6,6 +6,8 @@ import {
   RegistryFieldAccessPosition,
   UpdateRegistryFieldAccessDto,
 } from './dtos/registry-field-access.dto';
+import { Position } from '@prisma/client';
+import { utimes } from 'fs';
 
 @Injectable()
 export class RegistryFieldAccessService {
@@ -42,8 +44,21 @@ export class RegistryFieldAccessService {
     try {
       return await this.ormProvider.registryFieldAccess.findMany();
     } catch (error) {
-      
-      throw new BadRequestException('Failed to retrieve registry field access records');
+      throw new BadRequestException(
+        'Failed to retrieve registry field access records',
+      );
     }
+  }
+
+  async findVisibleFields(position: Position) {
+    try {
+      const fieldAccess = await this.ormProvider.registryFieldAccess.findMany({
+        where: { position: position, access: 'VISIBLE' },
+      });
+
+      return fieldAccess.map((item) => {
+        return item.registryField;
+      });
+    } catch (error) {}
   }
 }

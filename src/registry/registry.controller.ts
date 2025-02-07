@@ -36,6 +36,7 @@ import { RegistryExportService } from './registry-export.service';
 import { Response } from 'express';
 import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
 
+
 @ApiTags('registry')
 @UseGuards(LocalGuard, RolesGuard)
 @Controller('registry')
@@ -118,7 +119,8 @@ export class RegistryController {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {},
     },
   })
-  async exportToExcel(@Res() res: Response) {
-    await this.registryExportService.generateExcel(res);
+  async exportToExcel(@Res() res: Response, @Session() session:UserSessionType ) {
+    const position = session.passport.user.position
+    await this.registryExportService.generateExcel(res ,position );
   }
 }
