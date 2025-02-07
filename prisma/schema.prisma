@@ -47,6 +47,13 @@ enum SampleStatus {
   DELIVERED
 }
 
+enum AccessType {
+  EDITABLE
+  VISIBLE
+  HIDDEN
+}
+
+
 
 
 model User {
@@ -180,11 +187,12 @@ model Registry {
   userIdRegistryUpdatedBy String? 
 }
 
-model RegistryFieldAccess {
-  id        String   @id @unique @default(uuid())
-  position  Position @unique
-  registryPermissions Json  
+model FieldAccess {
+  id       String   @id @unique @default(uuid())
+  position Position 
+  field    String   @db.VarChar(255) 
+  access   AccessType 
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime?
+  updatedAt DateTime @default(now())
 }
+
