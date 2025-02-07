@@ -47,6 +47,8 @@ enum SampleStatus {
   DELIVERED
 }
 
+
+
 model User {
   id           String    @id @unique @default(uuid())
   name         String    @db.VarChar(255)
@@ -176,4 +178,13 @@ model Registry {
 
   registryUpdatedBy       User?   @relation(name: "registry-updated-by", fields: [userIdRegistryUpdatedBy], references: [id])
   userIdRegistryUpdatedBy String? 
+}
+
+model RegistryFieldAccess {
+  id        String   @id @unique @default(uuid())
+  position  Position @unique
+  registryPermissions Json  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
 }
