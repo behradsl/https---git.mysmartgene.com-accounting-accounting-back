@@ -39,6 +39,9 @@ export class RegistryExportService {
         if (!(field in registry)) return 'N/A';
 
         const value = registry[field];
+        if(field === 'Laboratory'){
+          return value.name;
+        }
         return value instanceof Date ? value.toISOString() : (value ?? 'N/A');
       });
 
