@@ -47,6 +47,15 @@ enum SampleStatus {
   DELIVERED
 }
 
+enum AccessType {
+  EDITABLE
+  VISIBLE
+  HIDDEN
+}
+
+
+
+
 model User {
   id           String    @id @unique @default(uuid())
   name         String    @db.VarChar(255)
@@ -177,3 +186,15 @@ model Registry {
   registryUpdatedBy       User?   @relation(name: "registry-updated-by", fields: [userIdRegistryUpdatedBy], references: [id])
   userIdRegistryUpdatedBy String? 
 }
+
+model RegistryFieldAccess {
+  id       String   @id @unique @default(uuid())
+  position Position 
+  registryField    String   @db.VarChar(255) 
+  access   AccessType 
+
+  updatedAt DateTime @default(now())
+
+  @@unique(fields: [position , registryField] , name: "position_registryField")
+}
+

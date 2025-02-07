@@ -2,12 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
+import { RegistryFieldAccessService } from 'src/registry-field-access/registry-field-access.service';
+import { Position } from '@prisma/client';
+import { generate } from 'rxjs';
 
 @Injectable()
 export class RegistryExportService {
-  constructor(private readonly ormProvider: OrmProvider) {}
+  constructor(
+    private readonly ormProvider: OrmProvider,
+    private readonly registryFieldAccessService: RegistryFieldAccessService,
+  ) {}
 
-  async generateExcel(res: Response) {
+  async generateExcel(res: Response, position: Position) {
     const registries = await this.ormProvider.registry.findMany({
       include: { Laboratory: { select: { name: true } } },
     });
@@ -15,44 +21,32 @@ export class RegistryExportService {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Registry Data');
 
-    worksheet.addRow([
-      'MotId',
-      'نام',
-      'نام آزمایشگاه',
-      'توع سرویس',
-      'نوع کیت',
-      'وضعیت اظطرار',
-      'قیمت',
-      'توضیحات',
-      'اطلاعات مشتری',
-      'وضعیت آماده بودن جواب',
-      'زمان آماده شدن',
-      'وضعیت فاکتور',
-      'مقدار کل فاکتور',
-      'مجموع پرداختی',
-      'زمان تسویه',
-    ]);
+    const visibleFields =
+      await this.registryFieldAccessService.findVisibleFields(position);
+
+    
+
+    if (!Array.isArray(visibleFields) || visibleFields.length === 0)
+      return 'no visible fields!';
+
+    const headerRow = visibleFields.map(
+      (field) => PersianRegistryFieldNames[field],
+    );
+    
+    worksheet.addRow(headerRow);
 
     registries.forEach((registry) => {
-      worksheet.addRow([
-        registry.MotId,
-        registry.name,
-        registry.Laboratory.name,
-        registry.serviceType,
-        registry.kitType,
-        registry.urgentStatus,
-        registry.price.toString(),
-        registry.description || 'N/A',
-        registry.costumerRelationInfo || 'N/A',
-        registry.resultReady,
-        registry.resultReadyTime
-          ? registry.resultReadyTime.toISOString()
-          : 'N/A',
-        registry.invoiceStatus,
-        registry.totalInvoiceAmount.toString(),
-        registry.totalPaid.toString(),
-        registry.settlementDate ? registry.settlementDate.toISOString() : 'N/A',
-      ]);
+      const rowData = visibleFields.map((field) => {
+        if (!(field in registry)) return 'N/A';
+
+        const value = registry[field];
+        if(field === 'Laboratory'){
+          return value.name;
+        }
+        return value instanceof Date ? value.toISOString() : (value ?? 'N/A');
+      });
+
+      worksheet.addRow(rowData);
     });
 
     res.setHeader(
@@ -67,4 +61,67 @@ export class RegistryExportService {
     await workbook.xlsx.write(res);
     res.end();
   }
+
+  async generateEmptyExcel(res: Response){
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Registry Data');
+
+    worksheet.addRow(Object.values(PersianRegistryFieldNames));
+
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=registries.xlsx',
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+    
+  }
 }
+
+
+
+const PersianRegistryFieldNames = {
+  MotId: 'شناسه MOT',
+  name: 'نام',
+  Laboratory: 'آزمایشگاه',
+  laboratoryId: 'شناسه آزمایشگاه',
+  serviceType: 'نوع خدمات',
+  kitType: 'نوع کیت',
+  urgentStatus: 'وضعیت اضطراری',
+  price: 'قیمت',
+  description: 'توضیحات',
+  costumerRelationInfo: 'اطلاعات ارتباط با مشتری',
+  KoreaSendDate: 'تاریخ ارسال به کره',
+  resultReady: 'نتیجه آماده',
+  resultReadyTime: 'زمان آماده بودن نتیجه',
+  settlementStatus: 'وضعیت تسویه حساب',
+  invoiceStatus: 'وضعیت فاکتور',
+  proformaSent: 'ارسال پیش‌فاکتور',
+  proformaSentDate: 'تاریخ ارسال پیش‌فاکتور',
+  totalInvoiceAmount: 'مبلغ کل فاکتور',
+  installmentOne: 'قسط اول',
+  installmentOneDate: 'تاریخ قسط اول',
+  installmentTwo: 'قسط دوم',
+  installmentTwoDate: 'تاریخ قسط دوم',
+  installmentThree: 'قسط سوم',
+  installmentThreeDate: 'تاریخ قسط سوم',
+  totalPaid: 'مجموع پرداختی',
+  paymentPercentage: 'درصد پرداخت',
+  settlementDate: 'تاریخ تسویه حساب',
+  officialInvoiceSent: 'ارسال فاکتور رسمی',
+  officialInvoiceSentDate: 'تاریخ ارسال فاکتور رسمی',
+  sampleStatus: 'وضعیت نمونه',
+  sendSeries: 'سری ارسال',
+  
+};
+function generateEmptyExcel() {
+  throw new Error('Function not implemented.');
+}
+

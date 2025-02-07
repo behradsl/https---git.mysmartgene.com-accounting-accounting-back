@@ -34,6 +34,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportRegistryService } from './import-registry.service';
 import { RegistryExportService } from './registry-export.service';
 import { Response } from 'express';
+import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
+
 
 @ApiTags('registry')
 @UseGuards(LocalGuard, RolesGuard)
@@ -75,7 +77,8 @@ export class RegistryController {
     return await this.registryService.findOne(args);
   }
 
-  @Roles('ADMIN', 'DATA_ENTRY')
+  @UseInterceptors(FieldVisibilityInterceptor)
+  @Roles('ADMIN', 'FINANCE_MANAGER' , 'SALES_MANAGER' ,'SALES_REPRESENTATIVE')
   @Get('findMany')
   async findMany() {
     return await this.registryService.findMany();
@@ -116,7 +119,23 @@ export class RegistryController {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {},
     },
   })
-  async exportToExcel(@Res() res: Response) {
-    await this.registryExportService.generateExcel(res);
+  async exportToExcel(@Res() res: Response, @Session() session:UserSessionType ) {
+    const position = session.passport.user.position
+    await this.registryExportService.generateExcel(res ,position );
+  }
+
+  @Roles('ADMIN', 'DATA_ENTRY')
+  @Get('exportEmpty')
+  @ApiOperation({ summary: 'Export empty correct columns Excel file' })
+  @ApiResponse({
+    status: 200,
+    description: 'empty correct columns Excel file',
+    content: {
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {},
+    },
+  })
+  async generateEmptyExcel(@Res() res: Response ) {
+    
+    await this.registryExportService.generateEmptyExcel(res );
   }
 }

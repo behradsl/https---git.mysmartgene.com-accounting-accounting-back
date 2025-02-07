@@ -58,7 +58,7 @@ CREATE TABLE `LaboratoryFormalPaymentInfo` (
 -- CreateTable
 CREATE TABLE `Registry` (
     `id` VARCHAR(191) NOT NULL,
-    `MotId` TINYTEXT NOT NULL,
+    `MotId` VARCHAR(191) NOT NULL,
     `name` TINYTEXT NOT NULL,
     `laboratoryId` VARCHAR(191) NOT NULL,
     `serviceType` TINYTEXT NOT NULL,
@@ -94,7 +94,20 @@ CREATE TABLE `Registry` (
     `userIdRegistryUpdatedBy` VARCHAR(191) NULL,
 
     UNIQUE INDEX `Registry_id_key`(`id`),
-    UNIQUE INDEX `Registry_laboratoryId_key`(`laboratoryId`),
+    UNIQUE INDEX `Registry_MotId_key`(`MotId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `FieldAccess` (
+    `id` VARCHAR(191) NOT NULL,
+    `position` ENUM('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE', 'DATA_ENTRY') NOT NULL,
+    `field` VARCHAR(255) NOT NULL,
+    `access` ENUM('FULL', 'HIDDEN') NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NULL,
+
+    UNIQUE INDEX `FieldAccess_id_key`(`id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
