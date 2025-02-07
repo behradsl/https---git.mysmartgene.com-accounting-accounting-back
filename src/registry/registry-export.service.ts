@@ -23,7 +23,7 @@ export class RegistryExportService {
     const visibleFields =
       await this.registryFieldAccessService.findVisibleFields(position);
 
-    console.log(visibleFields);
+    
 
     if (!Array.isArray(visibleFields) || visibleFields.length === 0)
       return 'no visible fields!';
