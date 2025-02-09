@@ -4,15 +4,20 @@ import {
   Post,
   Session,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ImportRegistryService } from './import-registry.service';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserSessionType } from 'src/types/global-types';
 import { Roles } from 'src/auth/decorators/role.decorator';
+import { LocalGuard } from 'src/auth/guards/local.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
+@ApiTags('import-registry')
+@UseGuards(LocalGuard, RolesGuard)
 @Controller('import-registry')
 export class ImportRegistryController {
   constructor(private readonly importRegistryService: ImportRegistryService) {}

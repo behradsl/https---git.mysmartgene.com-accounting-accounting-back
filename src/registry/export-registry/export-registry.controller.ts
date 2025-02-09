@@ -7,7 +7,7 @@ import { Roles } from 'src/auth/decorators/role.decorator';
 import { UserSessionType } from 'src/types/global-types';
 import { Response } from 'express';
 
-@ApiTags('registry')
+@ApiTags('export-registry')
 @UseGuards(LocalGuard, RolesGuard)
 @Controller('export-registry')
 export class ExportRegistryController {

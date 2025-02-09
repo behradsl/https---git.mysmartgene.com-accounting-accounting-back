@@ -6,7 +6,7 @@ import {
   UpdateRegistryDto,
 } from './dtos/registry.dto';
 
-import { Position, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class RegistryService {
@@ -92,7 +92,6 @@ export class RegistryService {
       return await this.ormProvider.registry.update({
         where: { id: args.id ,final:true },
         data: {
-          MotId: args.MotId,
           name: args.name,
           serviceType: args.serviceType,
           kitType: args.kitType,

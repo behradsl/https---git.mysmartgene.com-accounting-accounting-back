@@ -84,7 +84,6 @@ export class RegistryPreviewService {
       return await this.ormProvider.registry.update({
         where: { id: args.id },
         data: {
-          MotId: args.MotId,
           name: args.name,
           serviceType: args.serviceType,
           kitType: args.kitType,
