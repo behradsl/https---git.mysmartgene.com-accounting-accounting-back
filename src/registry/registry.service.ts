@@ -90,7 +90,7 @@ export class RegistryService {
     try {
       
       return await this.ormProvider.registry.update({
-        where: { id: args.id },
+        where: { id: args.id ,final:true },
         data: {
           MotId: args.MotId,
           name: args.name,
@@ -168,7 +168,7 @@ export class RegistryService {
   async findOne(args: RegistryIdDto) {
     try {
       const existingRegistry = await this.ormProvider.registry.findUnique({
-        where: { id: args.id },
+        where: { id: args.id , final:true },
       });
 
       return existingRegistry;
