@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, flatten, Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
   CreateRegistryDto,
@@ -6,7 +6,7 @@ import {
   UpdateRegistryDto,
 } from './dtos/registry.dto';
 
-import { Prisma } from '@prisma/client';
+import { Position, Prisma } from '@prisma/client';
 
 @Injectable()
 export class RegistryService {
@@ -83,8 +83,12 @@ export class RegistryService {
     }
   }
 
-  async updateRegistry(args: UpdateRegistryDto, userId: string) {
+  async updateRegistry(
+    args: UpdateRegistryDto,userId:string
+    
+  ) {
     try {
+      
       return await this.ormProvider.registry.update({
         where: { id: args.id },
         data: {
@@ -129,8 +133,9 @@ export class RegistryService {
             : null,
 
           totalPaid: args.totalPaid,
-          paymentPercentage:
-            (Number(args.totalPaid) / Number(args.totalInvoiceAmount)) * 100,
+          paymentPercentage: args.totalInvoiceAmount
+            ? (Number(args.totalPaid) / Number(args.totalInvoiceAmount)) * 100
+            : 0,
           settlementDate: args.settlementDate
             ? new Date(args.settlementDate)
             : null,
@@ -148,17 +153,7 @@ export class RegistryService {
         },
       });
     } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-  }
-
-  async findOne(args: RegistryIdDto) {
-    try {
-      return await this.ormProvider.registry.findUnique({
-        where: { id: args.id },
-      });
-    } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new BadRequestException(error);
     }
   }
 
@@ -167,6 +162,18 @@ export class RegistryService {
       return await this.ormProvider.registry.findMany();
     } catch (error) {
       throw new BadRequestException(error.message);
+    }
+  }
+
+  async findOne(args: RegistryIdDto) {
+    try {
+      const existingRegistry = await this.ormProvider.registry.findUnique({
+        where: { id: args.id },
+      });
+
+      return existingRegistry;
+    } catch (error) {
+      throw new BadRequestException(error);
     }
   }
 }

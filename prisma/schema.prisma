@@ -185,6 +185,8 @@ model Registry {
 
   registryUpdatedBy       User?   @relation(name: "registry-updated-by", fields: [userIdRegistryUpdatedBy], references: [id])
   userIdRegistryUpdatedBy String? 
+
+  final Boolean @default(false)
 }
 
 model RegistryFieldAccess {

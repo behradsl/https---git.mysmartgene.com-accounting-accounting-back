@@ -4,7 +4,7 @@ import { OrmProvider } from 'src/providers/orm.provider';
 import * as XLSX from 'xlsx';
 
 import { Prisma } from '@prisma/client';
-import { rawDataToRegistryType } from './utilities/registryType.utilities';
+import { rawDataToRegistryType } from '../utilities/registryType.utilities';
 
 @Injectable()
 export class ImportRegistryService {
