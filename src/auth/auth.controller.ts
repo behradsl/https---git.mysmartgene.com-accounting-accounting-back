@@ -29,6 +29,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('user/signin')
   signin(@Body() args: AuthSigninDto, @Session() session: UserSessionType) {
+    
     return session.passport.user;
   }
 

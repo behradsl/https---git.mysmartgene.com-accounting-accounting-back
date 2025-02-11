@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsBoolean, IsString } from 'class-validator';
 
 export class AuthSigninDto {
   @IsString()
@@ -17,4 +17,12 @@ export class AuthSigninDto {
     type: 'string',
   })
   password: string;
+
+  @IsBoolean()
+  @ApiProperty({
+    example: 'true',
+    default: '',
+    type: 'boolean',
+  })
+  rememberMe: boolean;
 }
