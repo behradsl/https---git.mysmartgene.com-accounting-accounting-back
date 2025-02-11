@@ -188,13 +188,14 @@ export class CreateRegistryDto {
 }
 
 export class UpdateRegistryDto extends RegistryIdDto {
-  @ApiProperty({ description: 'MOT ID', example: '123abc' })
-  @IsString()
-  MotId: string;
-
+ 
   @ApiProperty({ description: 'Registry name', example: 'Test 1' })
   @IsString()
   name: string;
+
+  @ApiProperty({ description: 'ID of laboratory', example: '' })
+  @IsUUID()
+  laboratoryId: string;
 
   @ApiProperty({ description: 'Service type', example: 'Service Type 1' })
   @IsString()
