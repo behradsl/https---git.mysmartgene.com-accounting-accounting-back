@@ -49,7 +49,8 @@ export class RegistryController {
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;
-    return await this.registryService.updateRegistry(args, userId);
+    const position = session.passport.user.position;
+    return await this.registryService.updateRegistry(args, userId , position);
   }
 
   @UseInterceptors(FieldVisibilityInterceptor)

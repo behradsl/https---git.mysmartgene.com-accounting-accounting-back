@@ -193,6 +193,10 @@ export class UpdateRegistryDto extends RegistryIdDto {
   @IsString()
   name: string;
 
+  @ApiProperty({ description: 'ID of laboratory', example: '' })
+  @IsUUID()
+  laboratoryId: string;
+
   @ApiProperty({ description: 'Service type', example: 'Service Type 1' })
   @IsString()
   serviceType: string;
