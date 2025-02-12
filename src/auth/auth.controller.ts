@@ -8,11 +8,12 @@ import {
   Session,
   Get,
   Body,
+  Res,
 } from '@nestjs/common';
 import { LocalGuard } from './guards/local.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { UserSessionType } from 'src/types/global-types';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { AuthSigninDto } from './dtos/auth.dto';
 
 @ApiTags('Auth')
@@ -34,12 +35,19 @@ export class AuthController {
   }
 
   @Post('user/signout')
-  signout(@Req() request: Request) {
-    request.session.destroy(() => {
-      return {
+  signout(@Req() request: Request, @Res() response: Response) {
+    request.session.destroy((err) => {
+      if (err) {
+        return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          message: 'Logout failed',
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        });
+      }
+      response.clearCookie('connect.sid'); // Clear session cookie
+      return response.json({
         message: 'Logout successful',
         statusCode: HttpStatus.OK,
-      };
+      });
     });
   }
 }
