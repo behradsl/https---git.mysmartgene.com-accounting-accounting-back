@@ -18,7 +18,7 @@ import { AuthSigninDto } from './dtos/auth.dto';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  @UseGuards(LocalGuard)
+  
   @HttpCode(HttpStatus.OK)
   @Get('user')
   getCurrentUser(@Session() session: UserSessionType) {
