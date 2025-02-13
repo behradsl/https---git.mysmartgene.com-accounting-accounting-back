@@ -23,7 +23,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Get('user')
   getCurrentUser(@Session() session: UserSessionType) {
-    return session.passport.user;
+    console.log({session});
+    
+    return session?.passport?.user;
   }
 
   @UseGuards(LocalGuard)
@@ -31,7 +33,7 @@ export class AuthController {
   @Post('user/signin')
   signin(@Body() args: AuthSigninDto, @Session() session: UserSessionType) {
     
-    return session.passport.user;
+    return session?.passport?.user;
   }
 
   @Post('user/signout')

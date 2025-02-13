@@ -29,18 +29,19 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
         throw new UnauthorizedException('Invalid User Credentials!');
       }
 
+      
+
       const rememberMe = req.body.rememberMe === true;
 
-      
-
-      
       req.session.cookie.maxAge = rememberMe
         ? 30 * 24 * 60 * 60 * 1000 // 30 days
         : 24 * 60 * 60 * 1000; // 24 hours
 
       console.log(
-        `Session Max Age Set: ${req.session.cookie.maxAge / (24 * 60 * 60 * 1000)} days`
+        `Session Max Age Set: ${req.session.cookie.maxAge / (24 * 60 * 60 * 1000)} days`,
       );
+
+
 
       req.session.save((err) => {
         if (err) console.error('Session save error:', err);
@@ -49,7 +50,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
       return authByPassword;
     } catch (error) {
       throw new InternalServerErrorException(
-        'Unable to validate user credentials!'
+        'Unable to validate user credentials!',
       );
     }
   }
