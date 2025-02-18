@@ -21,22 +21,22 @@ import { AuthSigninDto } from './dtos/auth.dto';
 export class AuthController {
   
   @HttpCode(HttpStatus.OK)
-  @Get('user')
+  @Get('/user')
   getCurrentUser(@Session() session: UserSessionType) {
-    console.log({session});
+    
     
     return session?.passport?.user;
   }
 
   @UseGuards(LocalGuard)
   @HttpCode(HttpStatus.OK)
-  @Post('user/signin')
+  @Post('/signin')
   signin(@Body() args: AuthSigninDto, @Session() session: UserSessionType) {
     
     return session?.passport?.user;
   }
 
-  @Post('user/signout')
+  @Post('/signout')
   signout(@Req() request: Request, @Res() response: Response) {
     request.session.destroy((err) => {
       if (err) {

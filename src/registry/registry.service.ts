@@ -97,14 +97,10 @@ export class RegistryService {
               select: { registryField: true },
             });
 
-      
-
       const allowedFields =
         editableFields === 'ADMIN'
           ? 'ADMIN'
           : editableFields.map((field) => field.registryField);
-
-      
 
       const updateData: Record<string, any> = {};
 
@@ -167,8 +163,6 @@ export class RegistryService {
         }
       }
 
-      
-
       if (Object.keys(updateData).length === 0) {
         throw new BadRequestException('No permitted fields to update');
       }
@@ -186,7 +180,16 @@ export class RegistryService {
 
   async findMany() {
     try {
-      return await this.ormProvider.registry.findMany();
+      return await this.ormProvider.registry.findMany({
+        include: {
+          registryCreatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+          registryUpdatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+        },
+      });
     } catch (error) {
       throw new BadRequestException(error.message);
     }
