@@ -37,9 +37,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
         ? 30 * 24 * 60 * 60 * 1000 // 30 days
         : 24 * 60 * 60 * 1000; // 24 hours
 
-      console.log(
-        `Session Max Age Set: ${req.session.cookie.maxAge / (24 * 60 * 60 * 1000)} days`,
-      );
+     
 
 
 
