@@ -8,16 +8,16 @@ import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 
-@ApiTags('registry-preview')
+@ApiTags('registry/preview')
 @UseGuards(LocalGuard, RolesGuard)
-@Controller('registry-preview')
+@Controller('registry/preview')
 export class RegistryPreviewController {
   constructor(
     private readonly registryPreviewService: RegistryPreviewService,
   ) {}
 
   @Roles('ADMIN', 'DATA_ENTRY')
-  @Get('findManyNotFInal')
+  @Get('/find/many')
   async findAllNotFinals(@Session() session: UserSessionType) {
     const userId = session.passport.user.id;
     const position = session.passport.user.position;
@@ -25,7 +25,7 @@ export class RegistryPreviewController {
   }
 
   @Roles('ADMIN', 'DATA_ENTRY')
-  @Get('findOneNotFInal/:id')
+  @Get('/find/one/:id')
   async findOneNotFinal(
     @Param() args: RegistryIdDto,
     @Session() session: UserSessionType,
@@ -40,7 +40,7 @@ export class RegistryPreviewController {
   }
 
   @Roles('ADMIN', 'DATA_ENTRY')
-  @Post('updateNotFinal')
+  @Post('/update')
   async updateNotFinal(
     @Body() args: UpdateRegistryDto,
     @Session() session: UserSessionType,
@@ -56,7 +56,7 @@ export class RegistryPreviewController {
   }
 
   @Roles('ADMIN', 'DATA_ENTRY')
-  @Post('finalizeRegistry')
+  @Post('/finalize')
   async finalizeRegistry(
     @Body() args: RegistryIdDto,
     @Session() session: UserSessionType,

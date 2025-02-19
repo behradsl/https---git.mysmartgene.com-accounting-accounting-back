@@ -22,12 +22,12 @@ import { UserSessionType } from 'src/types/global-types';
 
 @ApiTags('laboratory')
 @UseGuards(LocalGuard, RolesGuard)
-@Controller('laboratory')
+@Controller('/laboratory')
 export class LaboratoryController {
   constructor(private readonly laboratoryService: LaboratoryService) {}
 
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('create')
+  @Post('/create')
   async createLaboratory(
     @Body() args: CreateLaboratoryDto,
     @Session() session: UserSessionType,
@@ -39,31 +39,31 @@ export class LaboratoryController {
   }
 
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('createPaymentInfo')
+  @Post('/create/payment-info')
   async createFormalPaymentInfo(@Body() args: CreateFormalPaymentInfoDto) {
     return await this.laboratoryService.createFormalPaymentInfo(args);
   }
 
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('update')
+  @Post('/update')
   async updateLaboratory(@Body() args: UpdateLaboratoryDto) {
     return await this.laboratoryService.updateLaboratory(args);
   }
 
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('UpdatePaymentInfo')
+  @Post('/Update/payment-info')
   async updateFormalPaymentInfo(@Body() args: UpdateFormalPaymentInfoDto) {
     return await this.laboratoryService.updateFormalPaymentInfo(args);
   }
 
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Get('findOne/:id')
+  @Get('/:id')
   async findOne(@Param('id') id: string) {
     return await this.laboratoryService.findOne(id);
   }
 
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Get('findMany')
+  @Get('/all')
   async findMany() {
     return await this.laboratoryService.findMany();
   }

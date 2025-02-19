@@ -6,9 +6,9 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { CreateRegistryFieldAccessDto, UpdateRegistryFieldAccessDto } from './dtos/registry-field-access.dto';
 
-@ApiTags('registryFieldAccess')
+@ApiTags('setting/registry/access')
 @UseGuards(LocalGuard, RolesGuard)
-@Controller('registry-field-access')
+@Controller('setting/registry/access')
 export class RegistryFieldAccessController {
   constructor(
     private readonly registryFieldAccessService: RegistryFieldAccessService,
@@ -16,7 +16,7 @@ export class RegistryFieldAccessController {
 
 
   @Roles('ADMIN')
-  @Post('upsert')
+  @Post('/assign')
   async upsert(@Body() args: CreateRegistryFieldAccessDto) {
     return await this.registryFieldAccessService.upsert(args);
   }
@@ -24,7 +24,7 @@ export class RegistryFieldAccessController {
   
 
   @Roles("ADMIN")
-  @Get('findAll')
+  @Get('/all')
   async findAll(){
     return await this.registryFieldAccessService.findAll();
   }

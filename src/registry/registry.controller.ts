@@ -26,12 +26,12 @@ import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.intercept
 
 @ApiTags('registry')
 @UseGuards(LocalGuard, RolesGuard)
-@Controller('registry')
+@Controller('/registry')
 export class RegistryController {
   constructor(private readonly registryService: RegistryService) {}
 
   @Roles('ADMIN', 'DATA_ENTRY')
-  @Post('create')
+  @Post('/create')
   async createRegistry(
     @Body() args: CreateRegistryDto,
     @Session() session: UserSessionType,
@@ -43,7 +43,7 @@ export class RegistryController {
   }
 
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
-  @Post('update')
+  @Post('/update')
   async updateRegistry(
     @Body() args: UpdateRegistryDto,
     @Session() session: UserSessionType,
@@ -55,14 +55,14 @@ export class RegistryController {
 
   @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
-  @Get('findOne/:id')
+  @Get('/:id')
   async findOne(@Param() args: RegistryIdDto) {
     return await this.registryService.findOne(args);
   }
 
   @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
-  @Get('findMany')
+  @Get('/all')
   async findMany() {
     return await this.registryService.findMany();
   }

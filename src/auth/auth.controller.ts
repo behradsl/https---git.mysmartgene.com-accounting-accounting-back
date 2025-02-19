@@ -17,7 +17,7 @@ import { Request, Response } from 'express';
 import { AuthSigninDto } from './dtos/auth.dto';
 
 @ApiTags('Auth')
-@Controller('auth')
+@Controller('/auth')
 export class AuthController {
   
   @HttpCode(HttpStatus.OK)
@@ -30,24 +30,24 @@ export class AuthController {
 
   @UseGuards(LocalGuard)
   @HttpCode(HttpStatus.OK)
-  @Post('/signin')
+  @Post('/sign-in')
   signin(@Body() args: AuthSigninDto, @Session() session: UserSessionType) {
     
     return session?.passport?.user;
   }
 
-  @Post('/signout')
+  @Post('/sign-out')
   signout(@Req() request: Request, @Res() response: Response) {
     request.session.destroy((err) => {
       if (err) {
         return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          message: 'Logout failed',
+          message: 'sign out failed',
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         });
       }
-      response.clearCookie('connect.sid'); // Clear session cookie
+      response.clearCookie('connect.sid'); 
       return response.json({
-        message: 'Logout successful',
+        message: 'sign out successful',
         statusCode: HttpStatus.OK,
       });
     });

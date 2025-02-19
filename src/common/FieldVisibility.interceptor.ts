@@ -23,18 +23,20 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
     const userPosition = user.position;
 
     const allowedFields = await this.getAllowedFields(userPosition);
+    console.log(allowedFields);
+    
 
-    // If user is admin, return data without filtering
+    
     if (allowedFields === 'ADMIN') {
       return next.handle();
     }
 
-    // Ensure allowedFields is an array before applying filtering
+    
     if (Array.isArray(allowedFields)) {
       return next.handle().pipe(map((data) => this.filterFields(data, allowedFields)));
     }
 
-    return next.handle(); // Fallback if no filtering is needed
+    return next.handle(); 
   }
 
   private async getAllowedFields(position: Position): Promise<string[] | 'ADMIN'> {

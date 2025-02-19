@@ -180,7 +180,10 @@ export class RegistryService {
 
   async findMany() {
     try {
-      return await this.ormProvider.registry.findMany({
+      console.log('hello');
+      
+      const registries = await this.ormProvider.registry.findMany({
+        where: { final: true },
         include: {
           registryCreatedBy: {
             select: { name: true, id: true, email: true, position: true },
@@ -189,7 +192,12 @@ export class RegistryService {
             select: { name: true, id: true, email: true, position: true },
           },
         },
+        
+       
+        
       });
+
+      console.log(registries);
     } catch (error) {
       throw new BadRequestException(error.message);
     }

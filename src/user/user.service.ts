@@ -61,6 +61,13 @@ export class UserService {
         where: { id: id },
         select: {
           email: true,
+          createdAt: true,
+          removedAt: true,
+          id: true,
+          LaboratoryAccountManager: true,
+          LaboratoryCreatedBy: { select: { id: true } },
+          RegistryCreatedBy: { select: { id: true } },
+          RegistryUpdatedBy: { select: { id: true } },
 
           phoneNumber: true,
           name: true,
@@ -85,18 +92,18 @@ export class UserService {
     }
   }
 
-  async findMany(args: UserFindDto) {
+  async findMany() {
     try {
-      const whereInput: Prisma.UserWhereInput = {
-        email: args.email,
-
-        name: args.name,
-        phoneNumber: args.phoneNumber,
-      };
       return await this.ormProvider.user.findMany({
-        where: whereInput,
         select: {
           email: true,
+          createdAt: true,
+          removedAt: true,
+          id: true,
+          LaboratoryAccountManager: true,
+          LaboratoryCreatedBy: { select: { id: true } },
+          RegistryCreatedBy: { select: { id: true } },
+          RegistryUpdatedBy: { select: { id: true } },
 
           phoneNumber: true,
           name: true,
