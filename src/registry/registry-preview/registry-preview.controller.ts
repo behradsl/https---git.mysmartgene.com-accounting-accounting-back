@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Session, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Session,
+  UseGuards,
+} from '@nestjs/common';
 import { RegistryPreviewService } from './registry-preview.service';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { UserSessionType } from 'src/types/global-types';
@@ -6,7 +14,6 @@ import { RegistryIdDto, UpdateRegistryDto } from '../dtos/registry.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
-
 
 @ApiTags('registry/preview')
 @UseGuards(LocalGuard, RolesGuard)

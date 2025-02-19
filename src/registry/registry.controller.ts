@@ -50,16 +50,13 @@ export class RegistryController {
   ) {
     const userId = session.passport.user.id;
     const position = session.passport.user.position;
-    return await this.registryService.updateRegistry(args, userId , position);
+    return await this.registryService.updateRegistry(args, userId, position);
   }
-
-  
 
   @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
   @Get('/all')
   async findMany() {
-
     return await this.registryService.findMany();
   }
 

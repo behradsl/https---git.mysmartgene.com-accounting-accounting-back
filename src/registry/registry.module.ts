@@ -21,6 +21,11 @@ import { RegistryPreviewController } from './registry-preview/registry-preview.c
     RegistryExportService,
     RegistryPreviewService,
   ],
-  controllers: [RegistryController, ImportRegistryController, ExportRegistryController, RegistryPreviewController],
+  controllers: [
+    RegistryController,
+    ImportRegistryController,
+    ExportRegistryController,
+    RegistryPreviewController,
+  ],
 })
 export class RegistryModule {}

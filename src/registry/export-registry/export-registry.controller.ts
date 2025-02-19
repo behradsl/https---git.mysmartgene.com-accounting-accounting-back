@@ -12,7 +12,6 @@ import { Roles } from 'src/auth/decorators/role.decorator';
 import { UserSessionType } from 'src/types/global-types';
 import { ApiTags } from '@nestjs/swagger';
 
-
 @ApiTags('/registry/export')
 @UseGuards(LocalGuard, RolesGuard)
 @Controller('/registry/export')
@@ -31,19 +30,19 @@ export class ExportRegistryController {
     });
   }
 
-  @Roles('ADMIN',"DATA_ENTRY")
+  @Roles('ADMIN', 'DATA_ENTRY')
   @Get('/preview/all')
-  async exportPreviewToExcel(@Session() session: UserSessionType): Promise<any> {
-    
-    const buffer = await this.registryExportService.generatePreviewExcel(session);
+  async exportPreviewToExcel(
+    @Session() session: UserSessionType,
+  ): Promise<any> {
+    const buffer =
+      await this.registryExportService.generatePreviewExcel(session);
 
     return new StreamableFile(buffer, {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       disposition: 'attachment; filename=registries.xlsx',
     });
   }
-
-  
 
   @Roles('ADMIN', 'DATA_ENTRY')
   @Get('/empty')

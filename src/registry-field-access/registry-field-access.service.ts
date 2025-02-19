@@ -53,7 +53,12 @@ export class RegistryFieldAccessService {
   async findVisibleFields(position: Position) {
     try {
       const fieldAccess = await this.ormProvider.registryFieldAccess.findMany({
-        where: {OR:[{ position: position, access: 'VISIBLE' },{ position: position, access: 'EDITABLE' }]},
+        where: {
+          OR: [
+            { position: position, access: 'VISIBLE' },
+            { position: position, access: 'EDITABLE' },
+          ],
+        },
       });
 
       return fieldAccess.map((item) => {

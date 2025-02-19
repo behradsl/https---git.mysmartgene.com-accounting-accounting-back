@@ -5,6 +5,11 @@ import { RegistryModule } from './registry/registry.module';
 import { RegistryFieldAccessModule } from './registry-field-access/registry-field-access.module';
 
 @Module({
-  imports: [AuthModule, LaboratoryModule, RegistryModule, RegistryFieldAccessModule],
+  imports: [
+    AuthModule,
+    LaboratoryModule,
+    RegistryModule,
+    RegistryFieldAccessModule,
+  ],
 })
 export class AppModule {}
