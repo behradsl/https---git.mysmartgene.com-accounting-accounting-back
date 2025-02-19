@@ -180,8 +180,6 @@ export class RegistryService {
 
   async findMany() {
     try {
-     
-      
       const registries = await this.ormProvider.registry.findMany({
         where: { final: true },
         include: {
@@ -192,12 +190,8 @@ export class RegistryService {
             select: { name: true, id: true, email: true, position: true },
           },
         },
-        
-       
-        
       });
-
-      
+      return registries;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
