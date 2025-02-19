@@ -23,29 +23,35 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
     const userPosition = user.position;
 
     const allowedFields = await this.getAllowedFields(userPosition);
+    
     console.log(allowedFields);
     
 
-    
     if (allowedFields === 'ADMIN') {
       return next.handle();
     }
 
-    
     if (Array.isArray(allowedFields)) {
-      return next.handle().pipe(map((data) => this.filterFields(data, allowedFields)));
+      return next
+        .handle()
+        .pipe(map((data) => this.filterFields(data, allowedFields)));
     }
 
-    return next.handle(); 
+    return next.handle();
   }
 
-  private async getAllowedFields(position: Position): Promise<string[] | 'ADMIN'> {
+  private async getAllowedFields(
+    position: Position,
+  ): Promise<string[] | 'ADMIN'> {
     if (position === 'ADMIN') {
       return 'ADMIN';
     }
     const fieldAccess = await this.ormProvider.registryFieldAccess.findMany({
       where: {
-        OR: [{ position, access: 'VISIBLE' }, { position, access: 'EDITABLE' }],
+        OR: [
+          { position, access: 'VISIBLE' },
+          { position, access: 'EDITABLE' },
+        ],
       },
       select: { registryField: true },
     });
@@ -61,9 +67,15 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
   }
 
   private filterObject(obj: any, allowedFields: string[]): any {
+    console.log(obj);
+    
     if (!obj || typeof obj !== 'object') return obj;
-    return Object.fromEntries(
+    const kir = Object.fromEntries(
       Object.entries(obj).filter(([key]) => allowedFields.includes(key)),
     );
+
+    console.log(kir);
+    return kir;
+    
   }
 }

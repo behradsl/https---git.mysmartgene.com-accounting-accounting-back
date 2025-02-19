@@ -180,7 +180,7 @@ export class RegistryService {
 
   async findMany() {
     try {
-      console.log('hello');
+     
       
       const registries = await this.ormProvider.registry.findMany({
         where: { final: true },
@@ -197,7 +197,7 @@ export class RegistryService {
         
       });
 
-      console.log(registries);
+      
     } catch (error) {
       throw new BadRequestException(error.message);
     }
