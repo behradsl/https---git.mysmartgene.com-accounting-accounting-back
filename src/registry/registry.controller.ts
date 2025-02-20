@@ -1,15 +1,17 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   Param,
   Post,
+  Query,
   Session,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
@@ -50,17 +52,37 @@ export class RegistryController {
   ) {
     const userId = session.passport.user.id;
     const position = session.passport.user.position;
-    return await this.registryService.updateRegistry(args, userId , position);
+    return await this.registryService.updateRegistry(args, userId, position);
   }
 
-  
-
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 15,
+    description: 'Number of records per page (default: 15)',
+  })
   @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
   @Get('/all')
-  async findMany() {
+  async findMany(@Query('page') page?: string, @Query('limit') limit?: string) {
+    try {
+      const pageNumber = page?parseInt(page, 10) : 1;
+      const limitNumber =limit? parseInt(limit, 10) : 15;
+      if (pageNumber < 1)
+        throw new BadRequestException('Page number must be at least 1');
+      if (limitNumber < 1)
+        throw new BadRequestException('Limit must be at least 1');
 
-    return await this.registryService.findMany();
+      return await this.registryService.findMany(pageNumber, limitNumber);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   @UseInterceptors(FieldVisibilityInterceptor)

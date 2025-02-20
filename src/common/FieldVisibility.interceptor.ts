@@ -23,9 +23,6 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
     const userPosition = user.position;
 
     const allowedFields = await this.getAllowedFields(userPosition);
-    
-    console.log(allowedFields);
-    
 
     if (allowedFields === 'ADMIN') {
       return next.handle();
@@ -67,15 +64,11 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
   }
 
   private filterObject(obj: any, allowedFields: string[]): any {
-    console.log(obj);
-    
     if (!obj || typeof obj !== 'object') return obj;
     const kir = Object.fromEntries(
       Object.entries(obj).filter(([key]) => allowedFields.includes(key)),
     );
 
-    console.log(kir);
     return kir;
-    
   }
 }

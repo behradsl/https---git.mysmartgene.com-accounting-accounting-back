@@ -1,13 +1,15 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 
@@ -39,9 +41,9 @@ export class UserController {
   }
 
   @Roles('ADMIN')
-  @Delete('/delete')
-  async deleteUser(@Body() args: UserIdDto) {
-    return this.userService.deleteUser(args);
+  @Post('/delete/:id')
+  async deleteUser(@Param('id') id: string) {
+    return this.userService.deleteUser({ id });
   }
 
   @Roles('ADMIN')
@@ -49,10 +51,28 @@ export class UserController {
   async findOne(@Param('id') id: string) {
     return this.userService.findOne({ id });
   }
-
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 15,
+    description: 'Number of records per page (default: 15)',
+  })
   @Roles('ADMIN')
   @Post('/all')
-  async findMany() {
-    return this.userService.findMany();
+  async findMany(@Query('page') page?: string, @Query('limit') limit?: string) {
+    const pageNumber = page ? parseInt(page, 10) : 1;
+    const limitNumber = limit ? parseInt(limit, 10) : 15;
+    if (pageNumber < 1)
+      throw new BadRequestException('Page number must be at least 1');
+    if (limitNumber < 1)
+      throw new BadRequestException('Limit must be at least 1');
+
+    return this.userService.findMany(pageNumber, limitNumber);
   }
 }

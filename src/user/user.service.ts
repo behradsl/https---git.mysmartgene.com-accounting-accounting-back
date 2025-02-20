@@ -92,9 +92,12 @@ export class UserService {
     }
   }
 
-  async findMany() {
+  async findMany(page: number = 1, limit: number = 15) {
     try {
+      const skip = (page - 1) * limit;
       return await this.ormProvider.user.findMany({
+        skip: skip,
+        take: limit,
         select: {
           email: true,
           createdAt: true,

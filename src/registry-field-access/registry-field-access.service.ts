@@ -40,9 +40,13 @@ export class RegistryFieldAccessService {
     }
   }
 
-  async findAll() {
+  async findAll(page: number = 1, limit: number = 15) {
     try {
-      return await this.ormProvider.registryFieldAccess.findMany();
+      const skip = (page - 1) * limit;
+      return await this.ormProvider.registryFieldAccess.findMany({
+        skip: skip,
+        take: limit,
+      });
     } catch (error) {
       throw new BadRequestException(
         'Failed to retrieve registry field access records',
@@ -53,7 +57,12 @@ export class RegistryFieldAccessService {
   async findVisibleFields(position: Position) {
     try {
       const fieldAccess = await this.ormProvider.registryFieldAccess.findMany({
-        where: {OR:[{ position: position, access: 'VISIBLE' },{ position: position, access: 'EDITABLE' }]},
+        where: {
+          OR: [
+            { position: position, access: 'VISIBLE' },
+            { position: position, access: 'EDITABLE' },
+          ],
+        },
       });
 
       return fieldAccess.map((item) => {

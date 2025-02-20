@@ -40,15 +40,25 @@ export class RegistryPreviewService {
     }
   }
 
-  async findAllNotFinals(userId: string, position: Position) {
+  async findAllNotFinals(
+    userId: string,
+    position: Position,
+    page: number = 1,
+    limit: number = 15,
+  ) {
     try {
+      const skip = (page - 1) * limit;
       if (position === 'ADMIN') {
         return await this.ormProvider.registry.findMany({
+          skip: skip,
+          take: limit,
           where: { final: false },
         });
       }
 
       return await this.ormProvider.registry.findMany({
+        skip: skip,
+        take: limit,
         where: { final: false, userIdRegistryCreatedBy: userId },
       });
     } catch (error) {}

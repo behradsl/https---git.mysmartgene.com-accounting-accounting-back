@@ -123,9 +123,12 @@ export class LaboratoryService {
     }
   }
 
-  async findMany() {
+  async findMany(page: number = 1, limit: number = 15) {
     try {
+      const skip = (page - 1) * limit;
       return await this.ormProvider.laboratory.findMany({
+        skip:skip,
+        take:limit,
         select: this.getLaboratorySelectFields(),
       });
     } catch (error) {
