@@ -35,8 +35,6 @@ export function checkRequiredProps(data, index: number) {
   ];
 
   for (const field of requiredFields) {
-    
-
     if (data[field] === undefined || data[field] === null || !data[field]) {
       return { field: field };
     }
@@ -45,8 +43,6 @@ export function checkRequiredProps(data, index: number) {
 }
 
 function parseDate(dateString: string | number | Date): Date | null {
- 
-
   if (!dateString) return null;
   if (dateString instanceof Date) return dateString;
   if (typeof dateString === 'number') {
@@ -60,8 +56,6 @@ function parseDate(dateString: string | number | Date): Date | null {
 }
 
 export function rawDataToRegistryType(rawData): RegistryType[] {
-  
-
   return rawData.map((data: any, index: number) => {
     const missedRequiredProps = checkRequiredProps(data, index);
 
@@ -76,7 +70,6 @@ export function rawDataToRegistryType(rawData): RegistryType[] {
       throw new Error(`Invalid ${invalidEnums.enum} in row ${index}`);
     }
 
-    
     return {
       ...data,
       price: parseFloat(data.price),

@@ -195,6 +195,7 @@ export class RegistryService {
           },
         },
       });
+      
     } catch (error) {
       throw new BadRequestException(error.message);
     }

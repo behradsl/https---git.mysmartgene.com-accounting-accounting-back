@@ -188,7 +188,6 @@ export class CreateRegistryDto {
 }
 
 export class UpdateRegistryDto extends RegistryIdDto {
- 
   @ApiProperty({ description: 'Registry name', example: 'Test 1' })
   @IsString()
   name: string;

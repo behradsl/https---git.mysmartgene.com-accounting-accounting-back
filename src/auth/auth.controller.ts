@@ -19,12 +19,9 @@ import { AuthSigninDto } from './dtos/auth.dto';
 @ApiTags('Auth')
 @Controller('/auth')
 export class AuthController {
-  
   @HttpCode(HttpStatus.OK)
   @Get('/user')
   getCurrentUser(@Session() session: UserSessionType) {
-    
-    
     return session?.passport?.user;
   }
 
@@ -32,7 +29,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('/sign-in')
   signin(@Body() args: AuthSigninDto, @Session() session: UserSessionType) {
-    
     return session?.passport?.user;
   }
 
@@ -45,7 +41,7 @@ export class AuthController {
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         });
       }
-      response.clearCookie('connect.sid'); 
+      response.clearCookie('connect.sid');
       return response.json({
         message: 'sign out successful',
         statusCode: HttpStatus.OK,
