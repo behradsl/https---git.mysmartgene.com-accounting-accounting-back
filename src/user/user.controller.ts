@@ -41,16 +41,11 @@ export class UserController {
   }
 
   @Roles('ADMIN')
-  @Post('/delete/:id')
-  async deleteUser(@Param('id') id: string) {
+  @Post('/delete')
+  async deleteUser(@Body('id') id: string) {
     return this.userService.deleteUser({ id });
   }
 
-  @Roles('ADMIN')
-  @Get('/:id')
-  async findOne(@Param('id') id: string) {
-    return this.userService.findOne({ id });
-  }
   @ApiQuery({
     name: 'page',
     required: false,
@@ -64,7 +59,7 @@ export class UserController {
     description: 'Number of records per page (default: 15)',
   })
   @Roles('ADMIN')
-  @Post('/all')
+  @Get('/all')
   async findMany(@Query('page') page?: string, @Query('limit') limit?: string) {
     const pageNumber = page ? parseInt(page, 10) : 1;
     const limitNumber = limit ? parseInt(limit, 10) : 15;
@@ -74,5 +69,11 @@ export class UserController {
       throw new BadRequestException('Limit must be at least 1');
 
     return this.userService.findMany(pageNumber, limitNumber);
+  }
+
+  @Roles('ADMIN')
+  @Get('/:id')
+  async findOne(@Param('id') id: string) {
+    return this.userService.findOne({ id });
   }
 }

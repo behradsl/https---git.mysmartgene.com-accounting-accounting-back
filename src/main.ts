@@ -37,10 +37,9 @@ async function bootstrap() {
       'version',
     ],
     origin: [
-      // 'https://teyran.app',
-      // 'https://www.teyran.app',
+      'https://test.mysmartgene.com',
       'http://localhost:3000',
-      // 'http://192.168.1.113:3000',
+      'http://localhost:4321',
     ],
   });
   app.use(
@@ -65,7 +64,7 @@ async function bootstrap() {
       secret: process.env.SESSION_SECRET || 'your_secret_key',
       resave: false,
       saveUninitialized: false,
-      cookie: {},
+      cookie: { httpOnly: true, sameSite: 'lax', maxAge: 3_600_000 },
     }),
   );
   app.use(passport.initialize());

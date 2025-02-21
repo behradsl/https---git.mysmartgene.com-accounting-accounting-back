@@ -25,9 +25,10 @@ export class UserService {
 
           phoneNumber: args.phoneNumber,
           name: args.name,
-          position: args.Position,
+          position: args.position,
           createdAt: new Date(),
         },
+        select: { hashPassword: false },
       });
     } catch (error) {
       throw new ForbiddenException(error);
@@ -43,7 +44,7 @@ export class UserService {
           email: args.email,
 
           hashPassword: hashedPassword,
-          position: args.Position,
+          position: args.position,
           phoneNumber: args.phoneNumber,
           name: args.name,
 
@@ -95,7 +96,7 @@ export class UserService {
   async findMany(page: number = 1, limit: number = 15) {
     try {
       const skip = (page - 1) * limit;
-      return await this.ormProvider.user.findMany({
+      const users = await this.ormProvider.user.findMany({
         skip: skip,
         take: limit,
         select: {
@@ -112,7 +113,12 @@ export class UserService {
           name: true,
           position: true,
         },
+        where: {
+          removedAt: null,
+        },
       });
+
+      return users;
     } catch (error) {
       throw new ForbiddenException(error);
     }
