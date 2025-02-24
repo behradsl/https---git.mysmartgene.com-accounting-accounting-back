@@ -2,12 +2,12 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import { RegistryIdDto, UpdateRegistryDto } from '../dtos/registry.dto';
 import { Position } from '@prisma/client';
-import { retry } from 'rxjs';
 
 @Injectable()
 export class RegistryPreviewService {
   constructor(private readonly ormProvider: OrmProvider) {}
 
+  
   async findOneNotFinal(
     args: RegistryIdDto,
     userId: string,
@@ -49,18 +49,40 @@ export class RegistryPreviewService {
     try {
       const skip = (page - 1) * limit;
       if (position === 'ADMIN') {
-        return await this.ormProvider.registry.findMany({
+        const registries = await this.ormProvider.registry.findMany({
           skip: skip,
           take: limit,
           where: { final: false },
+          include: {
+            Laboratory: { select: { name: true } },
+            registryCreatedBy: {
+              select: { name: true, id: true, email: true, position: true },
+            },
+            registryUpdatedBy: {
+              select: { name: true, id: true, email: true, position: true },
+            },
+          },
         });
+        console.log({ skip, page, limit, calc: limit * page });
+
+        return registries;
       }
 
-      return await this.ormProvider.registry.findMany({
+      const registries = await this.ormProvider.registry.findMany({
         skip: skip,
         take: limit,
         where: { final: false, userIdRegistryCreatedBy: userId },
+        include: {
+          Laboratory: { select: { name: true } },
+          registryCreatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+          registryUpdatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+        },
       });
+      return registries;
     } catch (error) {}
   }
 

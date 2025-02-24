@@ -92,6 +92,7 @@ CREATE TABLE `Registry` (
     `updatedAt` DATETIME(3) NULL,
     `userIdRegistryCreatedBy` VARCHAR(191) NOT NULL,
     `userIdRegistryUpdatedBy` VARCHAR(191) NULL,
+    `final` BOOLEAN NOT NULL DEFAULT false,
 
     UNIQUE INDEX `Registry_id_key`(`id`),
     UNIQUE INDEX `Registry_MotId_key`(`MotId`),
@@ -99,15 +100,15 @@ CREATE TABLE `Registry` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `FieldAccess` (
+CREATE TABLE `RegistryFieldAccess` (
     `id` VARCHAR(191) NOT NULL,
     `position` ENUM('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE', 'DATA_ENTRY') NOT NULL,
-    `field` VARCHAR(255) NOT NULL,
-    `access` ENUM('FULL', 'HIDDEN') NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NULL,
+    `registryField` VARCHAR(255) NOT NULL,
+    `access` ENUM('EDITABLE', 'VISIBLE', 'HIDDEN') NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `FieldAccess_id_key`(`id`),
+    UNIQUE INDEX `RegistryFieldAccess_id_key`(`id`),
+    UNIQUE INDEX `RegistryFieldAccess_position_registryField_key`(`position`, `registryField`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

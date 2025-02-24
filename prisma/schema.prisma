@@ -41,7 +41,7 @@ enum SampleStatus {
   PENDING
   SHIPMENT
   SHIPPED
-  RECEIVED_AT_LIBRARY
+  RECEIVED_AT_LABORATORY
   IN_TESTING
   READY_FOR_DELIVERY
   DELIVERED
@@ -52,9 +52,6 @@ enum AccessType {
   VISIBLE
   HIDDEN
 }
-
-
-
 
 model User {
   id           String    @id @unique @default(uuid())
@@ -92,7 +89,7 @@ model Laboratory {
   accountManagerId String
 
   createdBy       User   @relation(name: "created-by", fields: [UserIdCreatedBy], references: [id])
-  UserIdCreatedBy String 
+  UserIdCreatedBy String
 
   createdAt DateTime  @default(now())
   updatedAt DateTime?
@@ -130,7 +127,7 @@ model Registry {
   name  String @db.TinyText
 
   Laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
-  laboratoryId String    
+  laboratoryId String
 
   serviceType  String   @db.TinyText
   kitType      String   @db.TinyText
@@ -181,22 +178,21 @@ model Registry {
   updatedAt DateTime?
 
   registryCreatedBy       User   @relation(name: "registry-created-by", fields: [userIdRegistryCreatedBy], references: [id])
-  userIdRegistryCreatedBy String 
+  userIdRegistryCreatedBy String
 
   registryUpdatedBy       User?   @relation(name: "registry-updated-by", fields: [userIdRegistryUpdatedBy], references: [id])
-  userIdRegistryUpdatedBy String? 
+  userIdRegistryUpdatedBy String?
 
   final Boolean @default(false)
 }
 
 model RegistryFieldAccess {
-  id       String   @id @unique @default(uuid())
-  position Position 
-  registryField    String   @db.VarChar(255) 
-  access   AccessType 
+  id            String     @id @unique @default(uuid())
+  position      Position
+  registryField String     @db.VarChar(255)
+  access        AccessType
 
   updatedAt DateTime @default(now())
 
-  @@unique(fields: [position , registryField] , name: "position_registryField")
+  @@unique(fields: [position, registryField], name: "position_registryField")
 }
-

@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
   CreateUserDto,
@@ -7,7 +7,7 @@ import {
   UserIdDto,
 } from './dtos/user.dto';
 import { hashPassword } from 'src/utilities/hash';
-import { Prisma } from '@prisma/client';
+import { Position, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -16,22 +16,26 @@ export class UserService {
   async createUser(args: CreateUserDto) {
     try {
       const hashedPassword = await hashPassword(args.password);
-
+  
       return await this.ormProvider.user.create({
         data: {
           email: args.email,
-
           hashPassword: hashedPassword,
-
           phoneNumber: args.phoneNumber,
           name: args.name,
-          position: args.position,
-          createdAt: new Date(),
+          position: args.position as Position,
         },
-        select: { hashPassword: false },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          position: true,
+        },
       });
     } catch (error) {
-      throw new ForbiddenException(error);
+      console.error('Error creating user:', error);
+      throw new BadRequestException(error.message || 'Failed to create user');
     }
   }
 

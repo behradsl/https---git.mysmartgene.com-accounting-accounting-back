@@ -10,6 +10,7 @@ import {
   UpdateFormalPaymentInfoDto,
   UpdateLaboratoryDto,
 } from './dtos/laboratory.dto';
+import { Position } from '@prisma/client';
 
 @Injectable()
 export class LaboratoryService {
@@ -123,14 +124,24 @@ export class LaboratoryService {
     }
   }
 
-  async findMany(page: number = 1, limit: number = 15) {
+  async findMany(page: number = 1, limit: number = 15, position: Position) {
     try {
       const skip = (page - 1) * limit;
-      return await this.ormProvider.laboratory.findMany({
-        skip:skip,
-        take:limit,
-        select: this.getLaboratorySelectFields(),
+      if (position === 'ADMIN') {
+        const laboratories = await this.ormProvider.laboratory.findMany({
+          skip: skip,
+          take: limit,
+          select: this.getLaboratorySelectFields(),
+        });
+        return laboratories;
+      }
+
+      const laboratories = await this.ormProvider.laboratory.findMany({
+        skip: skip,
+        take: limit,
+        select: { id: true, name: true },
       });
+      return laboratories;
     } catch (error) {
       throw new BadRequestException(error);
     }

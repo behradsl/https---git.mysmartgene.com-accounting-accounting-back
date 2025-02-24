@@ -8,6 +8,7 @@ import {
   Query,
   Session,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { RegistryPreviewService } from './registry-preview.service';
 import { Roles } from 'src/auth/decorators/role.decorator';
@@ -16,6 +17,7 @@ import { RegistryIdDto, UpdateRegistryDto } from '../dtos/registry.dto';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
 
 @ApiTags('registry/preview')
 @UseGuards(LocalGuard, RolesGuard)
@@ -37,6 +39,7 @@ export class RegistryPreviewController {
     example: 15,
     description: 'Number of records per page (default: 15)',
   })
+  @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'DATA_ENTRY')
   @Get('/all')
   async findAllNotFinals(
@@ -56,13 +59,15 @@ export class RegistryPreviewController {
     return await this.registryPreviewService.findAllNotFinals(
       userId,
       position,
-      limitNumber,
       pageNumber,
+      limitNumber,
     );
   }
 
+
+  @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'DATA_ENTRY')
-  @Get('/find/one/:id')
+  @Get('/:id')
   async findOneNotFinal(
     @Param() args: RegistryIdDto,
     @Session() session: UserSessionType,

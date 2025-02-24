@@ -76,6 +76,7 @@ export class RegistryService {
 
           Laboratory: { connect: { id: args.laboratoryId } },
           registryCreatedBy: { connect: { id: userId } },
+          final: false,
         },
       });
     } catch (error) {
@@ -180,13 +181,14 @@ export class RegistryService {
 
   async findMany(page: number = 1, limit: number = 15) {
     try {
-      const skip = (page - 1) * limit; 
+      const skip = (page - 1) * limit;
 
-      return await this.ormProvider.registry.findMany({
+      const registries = await this.ormProvider.registry.findMany({
         where: { final: true },
         take: limit,
-        skip: skip, 
+        skip: skip,
         include: {
+          Laboratory: { select: { name: true } },
           registryCreatedBy: {
             select: { name: true, id: true, email: true, position: true },
           },
@@ -195,7 +197,7 @@ export class RegistryService {
           },
         },
       });
-      
+      return registries;
     } catch (error) {
       throw new BadRequestException(error.message);
     }

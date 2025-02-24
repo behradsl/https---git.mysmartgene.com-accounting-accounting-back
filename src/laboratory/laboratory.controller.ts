@@ -58,12 +58,6 @@ export class LaboratoryController {
     return await this.laboratoryService.updateFormalPaymentInfo(args);
   }
 
-  @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Get('/:id')
-  async findOne(@Param('id') id: string) {
-    return await this.laboratoryService.findOne(id);
-  }
-
   @ApiQuery({
     name: 'page',
     required: false,
@@ -76,10 +70,14 @@ export class LaboratoryController {
     example: 15,
     description: 'Number of records per page (default: 15)',
   })
-  @Roles('ADMIN', 'FINANCE_MANAGER')
   @Get('/all')
-  async findMany(@Query('page') page?: string, @Query('limit') limit?: string) {
+  async findMany(
+    @Session() session: UserSessionType,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     try {
+      const position = session.passport.user.position;
       const pageNumber = page ? parseInt(page, 10) : 1;
       const limitNumber = limit ? parseInt(limit, 10) : 15;
 
@@ -88,9 +86,19 @@ export class LaboratoryController {
       if (limitNumber < 1)
         throw new BadRequestException('Limit must be at least 1');
 
-      return await this.laboratoryService.findMany(pageNumber, limitNumber);
+      return await this.laboratoryService.findMany(
+        pageNumber,
+        limitNumber,
+        position,
+      );
     } catch (error) {
       throw new BadRequestException(error.message);
     }
+  }
+
+  @Roles('ADMIN', 'FINANCE_MANAGER')
+  @Get('/:id')
+  async findOne(@Param('id') id: string) {
+    return await this.laboratoryService.findOne(id);
   }
 }

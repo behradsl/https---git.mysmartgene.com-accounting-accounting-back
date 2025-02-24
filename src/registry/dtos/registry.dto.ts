@@ -150,10 +150,6 @@ export class CreateRegistryDto {
   @IsString()
   totalPaid: string;
 
-  @ApiProperty({ description: 'Payment percentage', example: '50' })
-  @IsString()
-  paymentPercentage: string;
-
   @ApiProperty({
     description: 'Settlement date',
     example: '2025-02-01T00:00:00.000Z',
@@ -318,9 +314,6 @@ export class UpdateRegistryDto extends RegistryIdDto {
   @IsString()
   totalPaid: string;
 
-  @ApiProperty({ description: 'Payment percentage', example: '50' })
-  @IsString()
-  paymentPercentage: string;
 
   @ApiProperty({
     description: 'Settlement date',
