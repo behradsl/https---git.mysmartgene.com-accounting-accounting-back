@@ -11,6 +11,7 @@ import {
   UpdateLaboratoryDto,
 } from './dtos/laboratory.dto';
 import { Position } from '@prisma/client';
+import { connect } from 'http2';
 
 @Injectable()
 export class LaboratoryService {
@@ -131,7 +132,7 @@ export class LaboratoryService {
         const laboratories = await this.ormProvider.laboratory.findMany({
           skip: skip,
           take: limit,
-          select: this.getLaboratorySelectFields(),
+          select:this.getLaboratorySelectFields(),
         });
         return laboratories;
       }
@@ -149,21 +150,21 @@ export class LaboratoryService {
 
   private getLaboratorySelectFields() {
     return {
-      accountManager: true,
+      accountManager:{select:{name:true , position:true}},
       address: true,
       code: true,
       contactName: true,
       createdAt: true,
       updatedAt: true,
-      createdBy: true,
+      createdBy: {select:{name:true , position:true}},
       email: true,
       fax: true,
       id: true,
-      LaboratoryFormalPaymentInfo: true,
+      LaboratoryFormalPaymentInfo: {select:{id:true}},
       name: true,
       paymentType: true,
       phoneNumber: true,
-      Registry: true,
+      Registry: {select:{MotId:true , id:true}},
       type: true,
     };
   }
