@@ -39,7 +39,6 @@ export class RegistryPreviewController {
     example: 15,
     description: 'Number of records per page (default: 15)',
   })
-  @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'DATA_ENTRY')
   @Get('/all')
   async findAllNotFinals(
@@ -64,8 +63,6 @@ export class RegistryPreviewController {
     );
   }
 
-
-  @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'DATA_ENTRY')
   @Get('/:id')
   async findOneNotFinal(
