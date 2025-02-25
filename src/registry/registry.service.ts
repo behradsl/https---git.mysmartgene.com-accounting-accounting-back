@@ -207,6 +207,15 @@ export class RegistryService {
     try {
       const existingRegistry = await this.ormProvider.registry.findUnique({
         where: { id: args.id, final: true },
+        include: {
+          Laboratory: { select: { name: true } },
+          registryCreatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+          registryUpdatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+        },
       });
 
       return existingRegistry;
