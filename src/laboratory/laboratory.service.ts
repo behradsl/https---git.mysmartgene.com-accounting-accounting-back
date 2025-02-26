@@ -57,7 +57,7 @@ export class LaboratoryService {
           type: args.type,
           createdAt: new Date(),
           createdBy: { connect: { id: userId } },
-          accountManager: { connect: { id: args.accountManager } },
+          accountManager: { connect: { id: args.accountManagerId } },
         },
         select: this.getLaboratorySelectFields(),
       });
@@ -105,7 +105,8 @@ export class LaboratoryService {
           phoneNumber: args.phoneNumber,
           type: args.type,
           updatedAt: new Date(),
-          accountManager: { connect: { id: args.accountManager } },
+          accountManager: { connect: { id: args.accountManagerId } },
+          fax:args.fax
         },
         select: this.getLaboratorySelectFields(),
       });
@@ -151,6 +152,7 @@ export class LaboratoryService {
   private getLaboratorySelectFields() {
     return {
       accountManager:{select:{name:true , position:true}},
+      accountManagerId:true,
       address: true,
       code: true,
       contactName: true,

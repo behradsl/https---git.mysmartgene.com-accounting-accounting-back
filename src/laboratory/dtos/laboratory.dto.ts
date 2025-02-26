@@ -60,7 +60,7 @@ export class CreateLaboratoryDto {
     example: '',
   })
   @IsUUID()
-  accountManager: UUID;
+  accountManagerId: UUID;
 }
 
 export class CreateFormalPaymentInfoDto extends LaboratoryIdDto {
@@ -180,7 +180,7 @@ export class UpdateLaboratoryDto extends LaboratoryIdDto {
     example: '',
   })
   @IsUUID()
-  accountManager: UUID;
+  accountManagerId: UUID;
 }
 
 export class UpdateFormalPaymentInfoDto extends LaboratoryIdDto {
