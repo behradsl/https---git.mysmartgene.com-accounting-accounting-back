@@ -15,9 +15,7 @@ import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import {
-  CreateFormalPaymentInfoDto,
   CreateLaboratoryDto,
-  UpdateFormalPaymentInfoDto,
   UpdateLaboratoryDto,
 } from './dtos/laboratory.dto';
 import { UserSessionType } from 'src/types/global-types';
@@ -27,6 +25,8 @@ import { UserSessionType } from 'src/types/global-types';
 @Controller('/laboratory')
 export class LaboratoryController {
   constructor(private readonly laboratoryService: LaboratoryService) {}
+
+  
 
   @Roles('ADMIN', 'FINANCE_MANAGER')
   @Post('/create')
@@ -40,11 +40,7 @@ export class LaboratoryController {
     );
   }
 
-  @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('/create/payment-info')
-  async createFormalPaymentInfo(@Body() args: CreateFormalPaymentInfoDto) {
-    return await this.laboratoryService.createFormalPaymentInfo(args);
-  }
+  
 
   @Roles('ADMIN', 'FINANCE_MANAGER')
   @Post('/update')
@@ -52,11 +48,6 @@ export class LaboratoryController {
     return await this.laboratoryService.updateLaboratory(args);
   }
 
-  @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('/Update/payment-info')
-  async updateFormalPaymentInfo(@Body() args: UpdateFormalPaymentInfoDto) {
-    return await this.laboratoryService.updateFormalPaymentInfo(args);
-  }
 
   @ApiQuery({
     name: 'page',
@@ -95,6 +86,8 @@ export class LaboratoryController {
       throw new BadRequestException(error.message);
     }
   }
+
+  
 
   @Roles('ADMIN', 'FINANCE_MANAGER')
   @Get('/:id')

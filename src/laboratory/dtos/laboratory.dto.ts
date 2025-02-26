@@ -63,7 +63,11 @@ export class CreateLaboratoryDto {
   accountManagerId: UUID;
 }
 
-export class CreateFormalPaymentInfoDto extends LaboratoryIdDto {
+export class CreateFormalPaymentInfoDto {
+  @ApiProperty({ description: 'id of lab' })
+  @IsUUID()
+  laboratoryId: string;
+
   @ApiProperty({
     description: 'lab legal entity name',
 
@@ -183,7 +187,11 @@ export class UpdateLaboratoryDto extends LaboratoryIdDto {
   accountManagerId: UUID;
 }
 
-export class UpdateFormalPaymentInfoDto extends LaboratoryIdDto {
+export class UpdateFormalPaymentInfoDto {
+  @ApiProperty({ description: 'id of lab' })
+  @IsUUID()
+  laboratoryId: string;
+
   @ApiProperty({
     description: 'lab legal entity name',
 

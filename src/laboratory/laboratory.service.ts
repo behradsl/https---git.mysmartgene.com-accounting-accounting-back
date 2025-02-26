@@ -7,6 +7,7 @@ import { OrmProvider } from 'src/providers/orm.provider';
 import {
   CreateFormalPaymentInfoDto,
   CreateLaboratoryDto,
+  LaboratoryIdDto,
   UpdateFormalPaymentInfoDto,
   UpdateLaboratoryDto,
 } from './dtos/laboratory.dto';
@@ -20,7 +21,7 @@ export class LaboratoryService {
   async createFormalPaymentInfo(args: CreateFormalPaymentInfoDto) {
     try {
       return await this.ormProvider.laboratory.update({
-        where: { id: args.id },
+        where: { id: args.laboratoryId },
         data: {
           paymentType: 'FORMAL',
           LaboratoryFormalPaymentInfo: {
@@ -36,8 +37,20 @@ export class LaboratoryService {
             },
           },
         },
-        select: this.getLaboratorySelectFields(),
+        select: { LaboratoryFormalPaymentInfo: true, name: true },
       });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async laboratoryFormalPaymentInfoFind({ id }: LaboratoryIdDto) {
+    try {
+      const FormalPaymentInfo = this.ormProvider.laboratory.findUnique({
+        where: { id: id },
+        select: { LaboratoryFormalPaymentInfo: true, name: true },
+      });
+      return FormalPaymentInfo;
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -69,7 +82,7 @@ export class LaboratoryService {
   async updateFormalPaymentInfo(args: UpdateFormalPaymentInfoDto) {
     try {
       return await this.ormProvider.laboratory.update({
-        where: { id: args.id },
+        where: { id: args.laboratoryId },
         data: {
           LaboratoryFormalPaymentInfo: {
             update: {
@@ -84,7 +97,7 @@ export class LaboratoryService {
             },
           },
         },
-        select: this.getLaboratorySelectFields(),
+        select: { LaboratoryFormalPaymentInfo: true, name: true },
       });
     } catch (error) {
       throw new BadRequestException(error);
@@ -106,7 +119,7 @@ export class LaboratoryService {
           type: args.type,
           updatedAt: new Date(),
           accountManager: { connect: { id: args.accountManagerId } },
-          fax:args.fax
+          fax: args.fax,
         },
         select: this.getLaboratorySelectFields(),
       });
@@ -133,7 +146,7 @@ export class LaboratoryService {
         const laboratories = await this.ormProvider.laboratory.findMany({
           skip: skip,
           take: limit,
-          select:this.getLaboratorySelectFields(),
+          select: this.getLaboratorySelectFields(),
         });
         return laboratories;
       }
@@ -151,22 +164,22 @@ export class LaboratoryService {
 
   private getLaboratorySelectFields() {
     return {
-      accountManager:{select:{name:true , position:true}},
-      accountManagerId:true,
+      accountManager: { select: { name: true, position: true } },
+      accountManagerId: true,
       address: true,
       code: true,
       contactName: true,
       createdAt: true,
       updatedAt: true,
-      createdBy: {select:{name:true , position:true}},
+      createdBy: { select: { name: true, position: true } },
       email: true,
       fax: true,
       id: true,
-      LaboratoryFormalPaymentInfo: {select:{id:true}},
+      LaboratoryFormalPaymentInfo: { select: { id: true } },
       name: true,
       paymentType: true,
       phoneNumber: true,
-      Registry: {select:{MotId:true , id:true}},
+      Registry: { select: { MotId: true, id: true } },
       type: true,
     };
   }
