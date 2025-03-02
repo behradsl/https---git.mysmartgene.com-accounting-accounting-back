@@ -1,6 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
-import { CreateRegistryFieldAccessDto } from './dtos/registry-field-access.dto';
+import {
+  CreateRegistryFieldAccessDto,
+  RegistryFieldAccessFindByPositionNameDto,
+} from './dtos/registry-field-access.dto';
 import { Position } from '@prisma/client';
 
 @Injectable()
@@ -50,6 +53,17 @@ export class RegistryFieldAccessService {
           }),
         ),
       );
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async findByPosition(args: RegistryFieldAccessFindByPositionNameDto) {
+    try {
+      this.ormProvider.registryFieldAccess.findMany({
+        where:{position:args.positionName}
+      })
+      
     } catch (error) {
       throw new BadRequestException(error);
     }

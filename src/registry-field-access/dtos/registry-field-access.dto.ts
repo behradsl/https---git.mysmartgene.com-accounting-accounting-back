@@ -8,6 +8,12 @@ export class RegistryFieldAccessIdDto {
   id: string;
 }
 
+export class RegistryFieldAccessFindByPositionNameDto {
+  @ApiProperty({ example: 'FINANCE_MANAGER' })
+  @IsString()
+  positionName: Position;
+}
+
 export class CreateRegistryFieldAccessDto {
   @ApiProperty({ example: 'FINANCE_MANAGER' })
   @IsEnum(Position)

@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -14,6 +15,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import {
   CreateRegistryFieldAccessDto,
+  RegistryFieldAccessFindByPositionNameDto,
   UpdateRegistryFieldAccessDto,
 } from './dtos/registry-field-access.dto';
 
@@ -37,21 +39,17 @@ export class RegistryFieldAccessController {
     return await this.registryFieldAccessService.upsertMany(args);
   }
 
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    example: 1,
-    description: 'Page number (default: 1)',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    example: 15,
-    description: 'Number of records per page (default: 15)',
-  })
   @Roles('ADMIN')
   @Get('/all')
   async findAll() {
     return await this.registryFieldAccessService.findAll();
+  }  
+
+  @Roles('ADMIN')
+  @Get('/all/:position')
+  async findByPosition(@Param() args:RegistryFieldAccessFindByPositionNameDto) {
+    return await this.registryFieldAccessService.findByPosition(args);
   }
+
+  
 }
