@@ -45,9 +45,9 @@ export class RegistryFieldAccessController {
   }  
 
   @Roles('ADMIN')
-  @Get('/all/:position')
+  @Get('/find/:position')
   async findByPosition(@Param() args:RegistryFieldAccessFindByPositionNameDto) {
-    console.log(args);
+    
     
     return await this.registryFieldAccessService.findByPosition(args);
   }
