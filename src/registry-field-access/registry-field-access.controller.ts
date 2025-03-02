@@ -26,9 +26,15 @@ export class RegistryFieldAccessController {
   ) {}
 
   @Roles('ADMIN')
-  @Post('/assign')
+  @Post('/assign/one')
   async upsert(@Body() args: CreateRegistryFieldAccessDto) {
     return await this.registryFieldAccessService.upsert(args);
+  }
+
+  @Roles('ADMIN')
+  @Post('/assign')
+  async upsertMany(@Body() args: CreateRegistryFieldAccessDto[]) {
+    return await this.registryFieldAccessService.upsertMany(args);
   }
 
   @ApiQuery({
@@ -45,17 +51,7 @@ export class RegistryFieldAccessController {
   })
   @Roles('ADMIN')
   @Get('/all')
-  async findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
-    const pageNumber = page ? parseInt(page, 10) : 1;
-    const limitNumber = limit ? parseInt(limit, 10) : 15;
-
-    if (pageNumber < 1)
-      throw new BadRequestException('Page number must be at least 1');
-    if (limitNumber < 1)
-      throw new BadRequestException('Limit must be at least 1');
-    return await this.registryFieldAccessService.findAll(
-      pageNumber,
-      limitNumber,
-    );
+  async findAll() {
+    return await this.registryFieldAccessService.findAll();
   }
 }

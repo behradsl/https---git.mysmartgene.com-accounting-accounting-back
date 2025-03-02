@@ -34,13 +34,30 @@ export class RegistryFieldAccessService {
     }
   }
 
-  async findAll(page: number = 1, limit: number = 15) {
+  async upsertMany(data: CreateRegistryFieldAccessDto[]) {
     try {
-      const skip = (page - 1) * limit;
-      return await this.ormProvider.registryFieldAccess.findMany({
-        skip: skip,
-        take: limit,
-      });
+      return await this.ormProvider.$transaction(
+        data.map(({ access, position, registryField }) =>
+          this.ormProvider.registryFieldAccess.upsert({
+            where: {
+              position_registryField: {
+                position,
+                registryField,
+              },
+            },
+            update: { access },
+            create: { position, registryField, access },
+          }),
+        ),
+      );
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async findAll() {
+    try {
+      return await this.ormProvider.registryFieldAccess.findMany({});
     } catch (error) {
       throw new BadRequestException(
         'Failed to retrieve registry field access records',
