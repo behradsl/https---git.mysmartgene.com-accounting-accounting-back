@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -9,14 +8,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { RegistryFieldAccessService } from './registry-field-access.service';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import {
   CreateRegistryFieldAccessDto,
   RegistryFieldAccessFindByPositionNameDto,
-  UpdateRegistryFieldAccessDto,
+  
 } from './dtos/registry-field-access.dto';
 
 @ApiTags('setting/registry/access')
@@ -48,6 +47,8 @@ export class RegistryFieldAccessController {
   @Roles('ADMIN')
   @Get('/all/:position')
   async findByPosition(@Param() args:RegistryFieldAccessFindByPositionNameDto) {
+    console.log(args);
+    
     return await this.registryFieldAccessService.findByPosition(args);
   }
 

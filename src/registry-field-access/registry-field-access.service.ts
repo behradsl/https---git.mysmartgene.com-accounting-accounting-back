@@ -60,10 +60,10 @@ export class RegistryFieldAccessService {
 
   async findByPosition(args: RegistryFieldAccessFindByPositionNameDto) {
     try {
-      this.ormProvider.registryFieldAccess.findMany({
-        where:{position:args.positionName}
+      const fieldAccess = await this.ormProvider.registryFieldAccess.findMany({
+        where:{position:args.position}
       })
-      
+      return fieldAccess
     } catch (error) {
       throw new BadRequestException(error);
     }
