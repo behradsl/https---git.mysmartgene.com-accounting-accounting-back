@@ -12,7 +12,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { RegistryExportService } from './registry-export.service';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { UserSessionType } from 'src/types/global-types';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BulkRegistryIds } from '../dtos/registry.dto';
 
 @ApiTags('/registry/export')
@@ -21,6 +21,10 @@ import { BulkRegistryIds } from '../dtos/registry.dto';
 export class ExportRegistryController {
   constructor(private readonly registryExportService: RegistryExportService) {}
 
+  @ApiOperation({
+    description:
+      "roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' ",
+  })
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
   @Post('/all')
   async exportToExcel(
@@ -38,13 +42,17 @@ export class ExportRegistryController {
     });
   }
 
+  @ApiOperation({ description: 'roles :ADMIN , DATA_ENTRY ' })
   @Roles('ADMIN', 'DATA_ENTRY')
-  @Get('/preview/all')
+  @Post('/preview/all')
   async exportPreviewToExcel(
     @Session() session: UserSessionType,
+    @Body() { ids }: BulkRegistryIds,
   ): Promise<any> {
-    const buffer =
-      await this.registryExportService.generatePreviewExcel(session);
+    const buffer = await this.registryExportService.generatePreviewExcel(
+      session,
+      { ids },
+    );
 
     return new StreamableFile(buffer, {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -52,6 +60,7 @@ export class ExportRegistryController {
     });
   }
 
+  @ApiOperation({ description: 'roles :ADMIN , DATA_ENTRY ' })
   @Roles('ADMIN', 'DATA_ENTRY')
   @Get('/empty')
   async generateEmptyExcel() {

@@ -26,7 +26,7 @@ export class RegistryExportService {
           })
         : await this.ormProvider.registry.findMany({
             where: {
-              id: { in: ids }, 
+              id: { in: ids },
               final: true,
             },
             include: { Laboratory: { select: { name: true } } },
@@ -67,20 +67,40 @@ export class RegistryExportService {
     return Buffer.from(uint8Array);
   }
 
-  async generatePreviewExcel(session: UserSessionType): Promise<Buffer> {
+  async generatePreviewExcel(
+    session: UserSessionType,
+    { ids }: BulkRegistryIds,
+  ): Promise<Buffer> {
     const registries =
       session.passport.user.position === 'ADMIN'
-        ? await this.ormProvider.registry.findMany({
-            where: { final: false },
-            include: { Laboratory: { select: { name: true } } },
-          })
-        : await this.ormProvider.registry.findMany({
-            where: {
-              final: false,
-              userIdRegistryCreatedBy: session.passport.user.id,
-            },
-            include: { Laboratory: { select: { name: true } } },
-          });
+        ? ids.length === 0
+          ? await this.ormProvider.registry.findMany({
+              where: { final: false },
+              include: { Laboratory: { select: { name: true } } },
+            })
+          : await this.ormProvider.registry.findMany({
+              where: {
+                id: { in: ids },
+                final: false,
+              },
+              include: { Laboratory: { select: { name: true } } },
+            })
+        : ids.length === 0
+          ? await this.ormProvider.registry.findMany({
+              where: {
+                final: false,
+                userIdRegistryCreatedBy: session.passport.user.id,
+              },
+              include: { Laboratory: { select: { name: true } } },
+            })
+          : await this.ormProvider.registry.findMany({
+              where: {
+                id: { in: ids },
+                final: false,
+                userIdRegistryCreatedBy: session.passport.user.id,
+              },
+              include: { Laboratory: { select: { name: true } } },
+            });
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Registry Data');
