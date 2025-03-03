@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import * as ExcelJS from 'exceljs';
-import { Response } from 'express';
+
 import { RegistryFieldAccessService } from 'src/registry-field-access/registry-field-access.service';
 import { Position } from '@prisma/client';
 import { UserSessionType } from 'src/types/global-types';
+import { BulkRegistryIds } from '../dtos/registry.dto';
 
 @Injectable()
 export class RegistryExportService {
@@ -13,11 +14,23 @@ export class RegistryExportService {
     private readonly registryFieldAccessService: RegistryFieldAccessService,
   ) {}
 
-  async generateExcel(position: Position): Promise<Buffer> {
-    const registries = await this.ormProvider.registry.findMany({
-      where: { final: true },
-      include: { Laboratory: { select: { name: true } } },
-    });
+  async generateExcel(
+    position: Position,
+    { ids }: BulkRegistryIds,
+  ): Promise<Buffer> {
+    const registries =
+      ids.length === 0
+        ? await this.ormProvider.registry.findMany({
+            where: { final: true },
+            include: { Laboratory: { select: { name: true } } },
+          })
+        : await this.ormProvider.registry.findMany({
+            where: {
+              id: { in: ids }, 
+              final: true,
+            },
+            include: { Laboratory: { select: { name: true } } },
+          });
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Registry Data');

@@ -7,12 +7,22 @@ import {
   IsString,
   IsUUID,
   IsOptional,
+  IsArray,
 } from 'class-validator';
 
 export class RegistryIdDto {
   @ApiProperty({ description: 'ID of registry', example: '' })
   @IsUUID()
   id: string;
+}
+
+export class BulkRegistryIds {
+  @ApiProperty({
+    description: 'an array of registry ids to be processed',
+    example: [],
+  })
+  @IsArray()
+  ids: string[];
 }
 
 export class CreateRegistryDto {
@@ -313,7 +323,6 @@ export class UpdateRegistryDto extends RegistryIdDto {
   @ApiProperty({ description: 'Total paid', example: '50000' })
   @IsString()
   totalPaid: string;
-
 
   @ApiProperty({
     description: 'Settlement date',
