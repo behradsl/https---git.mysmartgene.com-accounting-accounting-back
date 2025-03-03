@@ -48,10 +48,14 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
       select: { registryField: true, access: true },
     });
 
-    return fieldAccess.map((fa) => ({
+    const allowedFields = fieldAccess.map((fa) => ({
       field: fa.registryField,
       editable: fa.access === 'EDITABLE',
     }));
+
+    allowedFields.push({field:"id" , editable:false})
+
+    return allowedFields;
   }
 
   private filterFields(
