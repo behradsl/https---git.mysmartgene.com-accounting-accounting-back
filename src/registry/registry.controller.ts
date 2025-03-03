@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -16,6 +17,7 @@ import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import {
+  BulkRegistryIds,
   CreateRegistryDto,
   RegistryIdDto,
   UpdateRegistryDto,
@@ -26,19 +28,13 @@ import { RegistryService } from './registry.service';
 
 import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
 
-
-
-
 @ApiTags('registry')
 @UseGuards(LocalGuard, RolesGuard)
 @Controller('/registry')
 export class RegistryController {
   constructor(private readonly registryService: RegistryService) {}
 
-
-
-
-  @ApiOperation({description:"roles :ADMIN , DATA_ENTRY "})
+  @ApiOperation({ description: 'roles :ADMIN , DATA_ENTRY ' })
   @Roles('ADMIN', 'DATA_ENTRY')
   @Post('/create')
   async createRegistry(
@@ -51,7 +47,10 @@ export class RegistryController {
     );
   }
 
-  @ApiOperation({description:"roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' "})
+  @ApiOperation({
+    description:
+      "roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' ",
+  })
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
   @Post('/update')
   async updateRegistry(
@@ -63,8 +62,10 @@ export class RegistryController {
     return await this.registryService.updateRegistry(args, userId, position);
   }
 
-
-  @ApiOperation({description:"roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' "})
+  @ApiOperation({
+    description:
+      "roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' ",
+  })
   @ApiQuery({
     name: 'page',
     required: false,
@@ -82,8 +83,8 @@ export class RegistryController {
   @Get('/all')
   async findMany(@Query('page') page?: string, @Query('limit') limit?: string) {
     try {
-      const pageNumber = page?parseInt(page, 10) : 1;
-      const limitNumber =limit? parseInt(limit, 10) : 15;
+      const pageNumber = page ? parseInt(page, 10) : 1;
+      const limitNumber = limit ? parseInt(limit, 10) : 15;
       if (pageNumber < 1)
         throw new BadRequestException('Page number must be at least 1');
       if (limitNumber < 1)
@@ -95,11 +96,27 @@ export class RegistryController {
     }
   }
 
-  @ApiOperation({description:"roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' "})
+  @ApiOperation({
+    description:
+      "roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' ",
+  })
   @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
   @Get('/:id')
   async findOne(@Param() args: RegistryIdDto) {
     return await this.registryService.findOne(args);
+  }
+
+  @ApiOperation({
+    description: "roles :'ADMIN' ",
+  })
+  @Roles('ADMIN')
+  @Delete('/update')
+  async deleteRegistry(
+    @Body() { ids }: BulkRegistryIds,
+    @Session() session: UserSessionType,
+  ) {
+    const userId = session.passport.user.id;
+    return await this.registryService.deleteRegistry({ ids }, userId);
   }
 }

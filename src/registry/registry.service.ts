@@ -1,6 +1,7 @@
 import { BadRequestException, flatten, Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
+  BulkRegistryIds,
   CreateRegistryDto,
   RegistryIdDto,
   UpdateRegistryDto,
@@ -222,5 +223,16 @@ export class RegistryService {
     } catch (error) {
       throw new BadRequestException(error);
     }
+  }
+
+  async deleteRegistry({ ids }: BulkRegistryIds, userId: string) {
+    try {
+      const deletedRegistries = await this.ormProvider.registry.updateMany({
+        where: { id: { in: ids } },
+        data: { removedAt: new Date(), userIdRegistryUpdatedBy: userId },
+      });
+
+      return deletedRegistries;
+    } catch (error) {}
   }
 }

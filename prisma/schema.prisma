@@ -183,6 +183,8 @@ model Registry {
   registryUpdatedBy       User?   @relation(name: "registry-updated-by", fields: [userIdRegistryUpdatedBy], references: [id])
   userIdRegistryUpdatedBy String?
 
+  removedAt DateTime?
+
   final Boolean @default(false)
 }
 
