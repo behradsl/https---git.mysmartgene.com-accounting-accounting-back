@@ -14,10 +14,11 @@ import { RegistryPreviewService } from './registry-preview.service';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { UserSessionType } from 'src/types/global-types';
 import { RegistryIdDto, UpdateRegistryDto } from '../dtos/registry.dto';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
+
 
 @ApiTags('registry/preview')
 @UseGuards(LocalGuard, RolesGuard)
@@ -27,6 +28,8 @@ export class RegistryPreviewController {
     private readonly registryPreviewService: RegistryPreviewService,
   ) {}
 
+
+  @ApiOperation({description:"roles :ADMIN , DATA_ENTRY"})
   @ApiQuery({
     name: 'page',
     required: false,
@@ -63,6 +66,7 @@ export class RegistryPreviewController {
     );
   }
 
+  @ApiOperation({description:"roles :ADMIN , DATA_ENTRY"})
   @Roles('ADMIN', 'DATA_ENTRY')
   @Get('/:id')
   async findOneNotFinal(
@@ -78,6 +82,7 @@ export class RegistryPreviewController {
     );
   }
 
+  @ApiOperation({description:"roles :ADMIN , DATA_ENTRY"})
   @Roles('ADMIN', 'DATA_ENTRY')
   @Post('/update')
   async updateNotFinal(
@@ -94,6 +99,7 @@ export class RegistryPreviewController {
     );
   }
 
+  @ApiOperation({description:"roles :ADMIN , DATA_ENTRY"})
   @Roles('ADMIN', 'DATA_ENTRY')
   @Post('/finalize')
   async finalizeRegistry(

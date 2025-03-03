@@ -11,7 +11,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
@@ -26,12 +26,19 @@ import { RegistryService } from './registry.service';
 
 import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
 
+
+
+
 @ApiTags('registry')
 @UseGuards(LocalGuard, RolesGuard)
 @Controller('/registry')
 export class RegistryController {
   constructor(private readonly registryService: RegistryService) {}
 
+
+
+
+  @ApiOperation({description:"roles :ADMIN , DATA_ENTRY "})
   @Roles('ADMIN', 'DATA_ENTRY')
   @Post('/create')
   async createRegistry(
@@ -44,6 +51,7 @@ export class RegistryController {
     );
   }
 
+  @ApiOperation({description:"roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' "})
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
   @Post('/update')
   async updateRegistry(
@@ -55,6 +63,8 @@ export class RegistryController {
     return await this.registryService.updateRegistry(args, userId, position);
   }
 
+
+  @ApiOperation({description:"roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' "})
   @ApiQuery({
     name: 'page',
     required: false,
@@ -85,6 +95,7 @@ export class RegistryController {
     }
   }
 
+  @ApiOperation({description:"roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' "})
   @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
   @Get('/:id')

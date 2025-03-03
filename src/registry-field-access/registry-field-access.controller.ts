@@ -7,7 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { RegistryFieldAccessService } from './registry-field-access.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
@@ -25,24 +25,28 @@ export class RegistryFieldAccessController {
     private readonly registryFieldAccessService: RegistryFieldAccessService,
   ) {}
 
+  @ApiOperation({description:"roles :ADMIN "})
   @Roles('ADMIN')
   @Post('/assign/one')
   async upsert(@Body() args: CreateRegistryFieldAccessDto) {
     return await this.registryFieldAccessService.upsert(args);
   }
 
+  @ApiOperation({description:"roles :ADMIN "})
   @Roles('ADMIN')
   @Post('/assign')
   async upsertMany(@Body() args: CreateRegistryFieldAccessDto[]) {
     return await this.registryFieldAccessService.upsertMany(args);
   }
 
+  @ApiOperation({description:"roles :ADMIN "})
   @Roles('ADMIN')
   @Get('/all')
   async findAll() {
     return await this.registryFieldAccessService.findAll();
   }  
 
+  @ApiOperation({description:"roles :ADMIN "})
   @Roles('ADMIN')
   @Get('/find/:position')
   async findByPosition(@Param() args:RegistryFieldAccessFindByPositionNameDto) {

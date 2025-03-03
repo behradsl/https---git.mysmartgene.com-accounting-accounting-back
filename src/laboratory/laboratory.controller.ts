@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { LaboratoryService } from './laboratory.service';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
@@ -26,8 +26,7 @@ import { UserSessionType } from 'src/types/global-types';
 export class LaboratoryController {
   constructor(private readonly laboratoryService: LaboratoryService) {}
 
-  
-
+  @ApiOperation({ description: "roles :'ADMIN', 'FINANCE_MANAGER' " })
   @Roles('ADMIN', 'FINANCE_MANAGER')
   @Post('/create')
   async createLaboratory(
@@ -40,15 +39,14 @@ export class LaboratoryController {
     );
   }
 
-  
-
+  @ApiOperation({ description: "roles :'ADMIN', 'FINANCE_MANAGER' " })
   @Roles('ADMIN', 'FINANCE_MANAGER')
   @Post('/update')
   async updateLaboratory(@Body() args: UpdateLaboratoryDto) {
     return await this.laboratoryService.updateLaboratory(args);
   }
 
-
+  
   @ApiQuery({
     name: 'page',
     required: false,
@@ -88,8 +86,7 @@ export class LaboratoryController {
   }
 
   
-
-  @Roles('ADMIN', 'FINANCE_MANAGER')
+  
   @Get('/:id')
   async findOne(@Param('id') id: string) {
     return await this.laboratoryService.findOne(id);
