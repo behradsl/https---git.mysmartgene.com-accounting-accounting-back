@@ -66,3 +66,8 @@ export interface RegistryType {
 
   sendSeries: string;
 }
+
+export enum OrderBy {
+  asc = 'asc',
+  desc = 'desc',
+}

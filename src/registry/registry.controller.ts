@@ -23,7 +23,7 @@ import {
   UpdateRegistryDto,
 } from './dtos/registry.dto';
 
-import { UserSessionType } from 'src/types/global-types';
+import { OrderBy, UserSessionType } from 'src/types/global-types';
 import { RegistryService } from './registry.service';
 
 import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
@@ -78,10 +78,27 @@ export class RegistryController {
     example: 15,
     description: 'Number of records per page (default: 15)',
   })
+  @ApiQuery({
+    name: 'sortingBy',
+    required: false,
+    example: 'MotId',
+    description: 'fieldNAme registries would be sorted by (default: createdAt)',
+  })
+  @ApiQuery({
+    name: 'orderBy',
+    required: false,
+    example: OrderBy.asc,
+    description: 'order of registry sorting (default: asd )',
+  })
   @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
   @Get('/all')
-  async findMany(@Query('page') page?: string, @Query('limit') limit?: string) {
+  async findMany(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortingBy') sortingBy?: string,
+    @Query('orderBy') orderBy?: OrderBy,
+  ) {
     try {
       const pageNumber = page ? parseInt(page, 10) : 1;
       const limitNumber = limit ? parseInt(limit, 10) : 15;
@@ -89,8 +106,12 @@ export class RegistryController {
         throw new BadRequestException('Page number must be at least 1');
       if (limitNumber < 1)
         throw new BadRequestException('Limit must be at least 1');
-
-      return await this.registryService.findMany(pageNumber, limitNumber);
+      return await this.registryService.findMany(
+        pageNumber,
+        limitNumber,
+        sortingBy,
+        orderBy,
+      );
     } catch (error) {
       throw new BadRequestException(error.message);
     }

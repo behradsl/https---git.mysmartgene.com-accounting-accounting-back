@@ -8,6 +8,8 @@ import {
 } from './dtos/registry.dto';
 
 import { Position, Prisma } from '@prisma/client';
+import { OrderBy } from 'src/types/global-types';
+import { count } from 'console';
 
 @Injectable()
 export class RegistryService {
@@ -180,14 +182,24 @@ export class RegistryService {
     }
   }
 
-  async findMany(page: number = 1, limit: number = 15) {
+  async findMany(
+    page: number = 1,
+    limit: number = 15,
+    sortingBy: string = 'createdAt',
+    orderBy: OrderBy = OrderBy.asc,
+  ) {
     try {
       const skip = (page - 1) * limit;
+
+      const registriesCount = await this.ormProvider.registry.count({
+        where: { final: true },
+      });
 
       const registries = await this.ormProvider.registry.findMany({
         where: { final: true },
         take: limit,
         skip: skip,
+        orderBy: { [sortingBy]: orderBy },
         include: {
           Laboratory: { select: { name: true } },
           registryCreatedBy: {
@@ -198,7 +210,7 @@ export class RegistryService {
           },
         },
       });
-      return registries;
+      return { registries: registries, totalCount: registriesCount };
     } catch (error) {
       throw new BadRequestException(error.message);
     }

@@ -12,13 +12,12 @@ import {
 } from '@nestjs/common';
 import { RegistryPreviewService } from './registry-preview.service';
 import { Roles } from 'src/auth/decorators/role.decorator';
-import { UserSessionType } from 'src/types/global-types';
+import { OrderBy, UserSessionType } from 'src/types/global-types';
 import { RegistryIdDto, UpdateRegistryDto } from '../dtos/registry.dto';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
-
 
 @ApiTags('registry/preview')
 @UseGuards(LocalGuard, RolesGuard)
@@ -28,8 +27,19 @@ export class RegistryPreviewController {
     private readonly registryPreviewService: RegistryPreviewService,
   ) {}
 
-
-  @ApiOperation({description:"roles :ADMIN , DATA_ENTRY"})
+  @ApiOperation({ description: 'roles :ADMIN , DATA_ENTRY' })
+  @ApiQuery({
+    name: 'sortingBy',
+    required: false,
+    example: 'MotId',
+    description: 'fieldNAme registries would be sorted by (default: createdAt)',
+  })
+  @ApiQuery({
+    name: 'orderBy',
+    required: false,
+    example: OrderBy.asc,
+    description: 'order of registry sorting (default: asd )',
+  })
   @ApiQuery({
     name: 'page',
     required: false,
@@ -48,6 +58,8 @@ export class RegistryPreviewController {
     @Session() session: UserSessionType,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('sortingBy') sortingBy?: string,
+    @Query('orderBy') orderBy?: OrderBy,
   ) {
     const pageNumber = page ? parseInt(page, 10) : 1;
     const limitNumber = limit ? parseInt(limit, 10) : 15;
@@ -63,10 +75,13 @@ export class RegistryPreviewController {
       position,
       pageNumber,
       limitNumber,
+      sortingBy,
+      orderBy
+      
     );
   }
 
-  @ApiOperation({description:"roles :ADMIN , DATA_ENTRY"})
+  @ApiOperation({ description: 'roles :ADMIN , DATA_ENTRY' })
   @Roles('ADMIN', 'DATA_ENTRY')
   @Get('/:id')
   async findOneNotFinal(
@@ -82,7 +97,7 @@ export class RegistryPreviewController {
     );
   }
 
-  @ApiOperation({description:"roles :ADMIN , DATA_ENTRY"})
+  @ApiOperation({ description: 'roles :ADMIN , DATA_ENTRY' })
   @Roles('ADMIN', 'DATA_ENTRY')
   @Post('/update')
   async updateNotFinal(
@@ -99,7 +114,7 @@ export class RegistryPreviewController {
     );
   }
 
-  @ApiOperation({description:"roles :ADMIN , DATA_ENTRY"})
+  @ApiOperation({ description: 'roles :ADMIN , DATA_ENTRY' })
   @Roles('ADMIN', 'DATA_ENTRY')
   @Post('/finalize')
   async finalizeRegistry(
