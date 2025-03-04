@@ -15,7 +15,7 @@ export class RegistryPreviewService {
   ) {
     try {
       const existingRegistry = await this.ormProvider.registry.findUnique({
-        where: { id: args.id },
+        where: { id: args.id , final:false},
         include: {
           Laboratory: { select: { name: true } },
           registryCreatedBy: {
@@ -43,7 +43,7 @@ export class RegistryPreviewService {
         );
       }
 
-      return existingRegistry;
+      return { registries: existingRegistry, totalCount: existingRegistry?1:0 };
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -66,7 +66,7 @@ export class RegistryPreviewService {
         const registries = await this.ormProvider.registry.findMany({
           skip: skip,
           take: limit,
-          orderBy: { [sortingBy]:orderBy },
+          orderBy: { [sortingBy]: orderBy },
           where: { final: false },
           include: {
             Laboratory: { select: { name: true } },

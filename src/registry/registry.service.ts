@@ -231,7 +231,10 @@ export class RegistryService {
         },
       });
 
-      return existingRegistry;
+      return {
+        registries: existingRegistry,
+        totalCount: existingRegistry ? 1 : 0,
+      };
     } catch (error) {
       throw new BadRequestException(error);
     }

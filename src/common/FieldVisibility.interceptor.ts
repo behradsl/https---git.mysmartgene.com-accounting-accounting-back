@@ -25,9 +25,9 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
     if (userPosition === 'ADMIN') {
       return next.handle().pipe(
         map((response) => ({
-          registries: this.makeAllFieldsEditable(response.registries),
+          registries: this.makeFieldsEditable(response.registries),
           totalCount: response.totalCount,
-        }))
+        })),
       );
     }
 
@@ -36,8 +36,8 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((response) => ({
         registries: this.filterFields(response.registries, allowedFields),
-        totalCount: response.totalCount, 
-      }))
+        totalCount: response.totalCount,
+      })),
     );
   }
 
@@ -65,10 +65,13 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
   }
 
   private filterFields(
-    data: any[],
+    data: any | any[], // Can be a single object or an array
     allowedFields: { field: string; editable: boolean }[],
-  ): any[] {
-    return data.map((item) => this.filterObject(item, allowedFields));
+  ): any | any[] {
+    if (Array.isArray(data)) {
+      return data.map((item) => this.filterObject(item, allowedFields));
+    }
+    return this.filterObject(data, allowedFields);
   }
 
   private filterObject(
@@ -78,7 +81,7 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
     if (!obj || typeof obj !== 'object') return obj;
 
     const allowedFieldMap = Object.fromEntries(
-      allowedFields.map(({ field, editable }) => [field, editable])
+      allowedFields.map(({ field, editable }) => [field, editable]),
     );
 
     return Object.fromEntries(
@@ -87,12 +90,15 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
         .map(([key, value]) => [
           key,
           { value, editable: allowedFieldMap[key] },
-        ])
+        ]),
     );
   }
 
-  private makeAllFieldsEditable(data: any[]): any[] {
-    return data.map((item) => this.makeObjectEditable(item));
+  private makeFieldsEditable(data: any | any[]): any | any[] {
+    if (Array.isArray(data)) {
+      return data.map((item) => this.makeObjectEditable(item));
+    }
+    return this.makeObjectEditable(data);
   }
 
   private makeObjectEditable(obj: any): any {
@@ -102,7 +108,7 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
       Object.entries(obj).map(([key, value]) => [
         key,
         { value, editable: true },
-      ])
+      ]),
     );
   }
 }
