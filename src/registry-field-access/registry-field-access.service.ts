@@ -69,6 +69,8 @@ export class RegistryFieldAccessService {
     }
   }
 
+  
+
   async findAll() {
     try {
       return await this.ormProvider.registryFieldAccess.findMany({});

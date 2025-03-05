@@ -53,6 +53,14 @@ export class RegistryFieldAccessController {
     
     
     return await this.registryFieldAccessService.findByPosition(args);
+  }  
+
+  @ApiOperation({description:"roles :ADMIN "})
+  @Get('/find/visibleFields/:position')
+  async findVisibleFields(@Param() args:RegistryFieldAccessFindByPositionNameDto) {
+    
+    
+    return await this.registryFieldAccessService.findVisibleFields(args.position);
   }
 
   
