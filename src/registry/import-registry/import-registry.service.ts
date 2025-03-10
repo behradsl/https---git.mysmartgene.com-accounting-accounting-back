@@ -86,6 +86,8 @@ export class ImportRegistryService {
             );
           }
 
+          
+          
           const userCostumerRelation = data.costumerRelation
             ? await this.userService.findByContactInfo(
                 String(data.costumerRelation),

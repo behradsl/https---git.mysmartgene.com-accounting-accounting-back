@@ -94,6 +94,12 @@ export class UserService {
         where: { OR: [{ phoneNumber: info }, { email: info }] },
       });
 
+      if (!user) {
+        throw new BadRequestException(
+          `no user found with ${info} information!`,
+        );
+      }
+
       return user;
     } catch (error) {
       throw new BadRequestException(error);

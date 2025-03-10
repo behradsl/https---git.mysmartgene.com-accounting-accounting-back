@@ -22,14 +22,20 @@ export class RegistryExportService {
       ids.length === 0
         ? await this.ormProvider.registry.findMany({
             where: { final: true },
-            include: { Laboratory: { select: { name: true } } },
+            include: {
+              Laboratory: { select: { name: true } },
+              costumerRelation: { select: { phoneNumber: true } },
+            },
           })
         : await this.ormProvider.registry.findMany({
             where: {
               id: { in: ids },
               final: true,
             },
-            include: { Laboratory: { select: { name: true } } },
+            include: {
+              Laboratory: { select: { name: true } },
+              costumerRelation: { select: { phoneNumber: true } },
+            },
           });
 
     const workbook = new ExcelJS.Workbook();
@@ -51,13 +57,15 @@ export class RegistryExportService {
 
     registries.forEach((registry) => {
       const rowData = visibleFields.map((field) => {
-        if (!(field in registry)) return 'N/A';
+        // if (!(field in registry)) return 'N/A';
         const value = registry[field];
         return field === 'Laboratory'
           ? value.name
           : value instanceof Date
             ? value.toISOString()
-            : (value ?? 'N/A');
+            : field === 'costumerRelation' && value
+              ? value.phoneNumber
+              : value;
       });
 
       worksheet.addRow(rowData);
@@ -76,14 +84,20 @@ export class RegistryExportService {
         ? ids.length === 0
           ? await this.ormProvider.registry.findMany({
               where: { final: false },
-              include: { Laboratory: { select: { name: true } } },
+              include: {
+                Laboratory: { select: { name: true } },
+                costumerRelation: { select: { phoneNumber: true } },
+              },
             })
           : await this.ormProvider.registry.findMany({
               where: {
                 id: { in: ids },
                 final: false,
               },
-              include: { Laboratory: { select: { name: true } } },
+              include: {
+                Laboratory: { select: { name: true } },
+                costumerRelation: { select: { phoneNumber: true } },
+              },
             })
         : ids.length === 0
           ? await this.ormProvider.registry.findMany({
@@ -91,7 +105,10 @@ export class RegistryExportService {
                 final: false,
                 userIdRegistryCreatedBy: session.passport.user.id,
               },
-              include: { Laboratory: { select: { name: true } } },
+              include: {
+                Laboratory: { select: { name: true } },
+                costumerRelation: { select: { phoneNumber: true } },
+              },
             })
           : await this.ormProvider.registry.findMany({
               where: {
@@ -99,7 +116,10 @@ export class RegistryExportService {
                 final: false,
                 userIdRegistryCreatedBy: session.passport.user.id,
               },
-              include: { Laboratory: { select: { name: true } } },
+              include: {
+                Laboratory: { select: { name: true } },
+                costumerRelation: { select: { phoneNumber: true } },
+              },
             });
 
     const workbook = new ExcelJS.Workbook();
@@ -107,17 +127,21 @@ export class RegistryExportService {
 
     const headerRow = Object.keys(PersianRegistryFieldNames);
 
-    worksheet.addRow(headerRow);
+    worksheet.addRow(Object.values(PersianRegistryFieldNames));
 
     registries.forEach((registry) => {
       const rowData = headerRow.map((field) => {
-        if (!(field in registry)) return 'N/A';
+              
+        //if (!(field in registry)) return 'N/A';
         const value = registry[field];
+            
         return field === 'Laboratory'
           ? value.name
           : value instanceof Date
             ? value.toISOString()
-            : (value ?? 'N/A');
+            : field === 'costumerRelation' && value
+              ? value.phoneNumber
+              : value;
       });
 
       worksheet.addRow(rowData);
@@ -140,34 +164,22 @@ export class RegistryExportService {
 
 const PersianRegistryFieldNames = {
   MotId: 'شناسه MOT',
-  name: 'نام',
+  personName: 'نام شخص',
   Laboratory: 'آزمایشگاه',
-  laboratoryId: 'شناسه آزمایشگاه',
-  serviceType: 'نوع خدمات',
+  costumerRelation: 'ارتباط مشتری',
+  serviceType: 'نوع خدمت',
   kitType: 'نوع کیت',
+  sampleType: 'نوع نمونه',
   urgentStatus: 'وضعیت اضطراری',
-  price: 'قیمت',
   description: 'توضیحات',
-  costumerRelationInfo: 'اطلاعات ارتباط با مشتری',
-  KoreaSendDate: 'تاریخ ارسال به کره',
-  resultReady: 'نتیجه آماده',
+  productPriceUsd: 'قیمت محصول به دلار',
+  usdExchangeRate: 'نرخ دلار',
+  totalPriceRial: 'قیمت کل به ریال',
+  dataSampleReceived: 'تاریخ رسیدن نمونه',
+  sampleExtractionDate: 'تاریخ استخراج نمونه',
+  dataSentToKorea: 'تاریخ ارسال به کره',
+  rawFileReceivedDate: 'تاریخ رسیدن داده های خام',
+  analysisCompletionDate: 'تاریخ تکمیل آنالیز',
   resultReadyTime: 'زمان آماده بودن نتیجه',
-  settlementStatus: 'وضعیت تسویه حساب',
-  invoiceStatus: 'وضعیت فاکتور',
-  proformaSent: 'ارسال پیش‌فاکتور',
-  proformaSentDate: 'تاریخ ارسال پیش‌فاکتور',
-  totalInvoiceAmount: 'مبلغ کل فاکتور',
-  installmentOne: 'قسط اول',
-  installmentOneDate: 'تاریخ قسط اول',
-  installmentTwo: 'قسط دوم',
-  installmentTwoDate: 'تاریخ قسط دوم',
-  installmentThree: 'قسط سوم',
-  installmentThreeDate: 'تاریخ قسط سوم',
-  totalPaid: 'مجموع پرداختی',
-  paymentPercentage: 'درصد پرداخت',
-  settlementDate: 'تاریخ تسویه حساب',
-  officialInvoiceSent: 'ارسال فاکتور رسمی',
-  officialInvoiceSentDate: 'تاریخ ارسال فاکتور رسمی',
-  sampleStatus: 'وضعیت نمونه',
   sendSeries: 'سری ارسال',
 };
