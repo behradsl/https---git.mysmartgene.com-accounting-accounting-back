@@ -1,11 +1,11 @@
 import { SampleStatus } from '@prisma/client';
 
 export function sampleStatusCalculate(
-  dataSampleReceived?: string,
-  sampleExtractionDate?: string,
-  dataSentToKorea?: string,
-  rawFileReceivedDate?: string,
-  analysisCompletionDate?: string,
+  dataSampleReceived?: any,
+  sampleExtractionDate?: any,
+  dataSentToKorea?: any,
+  rawFileReceivedDate?: any,
+  analysisCompletionDate?: any,
 ) {
   if (
     dataSampleReceived &&

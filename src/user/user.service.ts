@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
   CreateUserDto,
@@ -16,7 +20,7 @@ export class UserService {
   async createUser(args: CreateUserDto) {
     try {
       const hashedPassword = await hashPassword(args.password);
-  
+
       return await this.ormProvider.user.create({
         data: {
           email: args.email,
@@ -81,6 +85,18 @@ export class UserService {
       });
     } catch (error) {
       throw new ForbiddenException(error);
+    }
+  }
+
+  async findByContactInfo(info: string) {
+    try {
+      const user = await this.ormProvider.user.findFirst({
+        where: { OR: [{ phoneNumber: info }, { email: info }] },
+      });
+
+      return user;
+    } catch (error) {
+      throw new BadRequestException(error);
     }
   }
 

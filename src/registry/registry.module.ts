@@ -11,9 +11,10 @@ import { RegistryPreviewService } from './registry-preview/registry-preview.serv
 import { ImportRegistryController } from './import-registry/import-registry.controller';
 import { ExportRegistryController } from './export-registry/export-registry.controller';
 import { RegistryPreviewController } from './registry-preview/registry-preview.controller';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [LaboratoryModule, RegistryFieldAccessModule],
+  imports: [LaboratoryModule, RegistryFieldAccessModule, UserModule],
   providers: [
     RegistryService,
     OrmProvider,

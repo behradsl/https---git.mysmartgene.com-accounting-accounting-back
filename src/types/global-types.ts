@@ -2,6 +2,7 @@ import {
   InvoiceStatus,
   Position,
   SampleStatus,
+  SampleType,
   SettlementStatus,
 } from '@prisma/client';
 
@@ -20,51 +21,24 @@ export interface UserSessionType {
 
 export interface RegistryType {
   MotId: string;
-  name: string;
-
+  personName: string;
   Laboratory: string;
-
+  costumerRelation?: string;
   serviceType: string;
   kitType: string;
+  sampleType: SampleType;
   urgentStatus?: boolean;
-
-  price: number;
-
   description?: string;
-
-  costumerRelationInfo?: string;
-  KoreaSendDate?: Date;
-
-  resultReady?: boolean;
+  productPriceUsd: string;
+  usdExchangeRate: string;
+  totalPriceRial: string;
+  dataSampleReceived: Date;
+  sampleExtractionDate?: Date;
+  dataSentToKorea?: Date;
+  rawFileReceivedDate?: Date;
+  analysisCompletionDate?: Date;
   resultReadyTime?: Date;
-
-  settlementStatus: SettlementStatus;
-  invoiceStatus: InvoiceStatus;
-
-  proformaSent?: boolean;
-  proformaSentDate?: Date;
-
-  totalInvoiceAmount: number;
-
-  installmentOne?: number;
-  installmentOneDate?: Date;
-
-  installmentTwo?: number;
-  installmentTwoDate?: Date;
-
-  installmentThree?: number;
-  installmentThreeDate?: Date;
-
-  totalPaid: number;
-
-  settlementDate?: Date;
-
-  officialInvoiceSent?: boolean;
-  officialInvoiceSentDate?: Date;
-
-  sampleStatus: SampleStatus;
-
-  sendSeries: string;
+  sendSeries: number;
 }
 
 export enum OrderBy {
