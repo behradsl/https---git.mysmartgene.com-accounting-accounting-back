@@ -13,7 +13,11 @@ import {
 import { RegistryPreviewService } from './registry-preview.service';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { OrderBy, UserSessionType } from 'src/types/global-types';
-import { RegistryIdDto, UpdateRegistryDto } from '../dtos/registry.dto';
+import {
+  BulkRegistryIds,
+  RegistryIdDto,
+  UpdateRegistryDto,
+} from '../dtos/registry.dto';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
@@ -76,8 +80,7 @@ export class RegistryPreviewController {
       pageNumber,
       limitNumber,
       sortingBy,
-      orderBy
-      
+      orderBy,
     );
   }
 
@@ -101,6 +104,7 @@ export class RegistryPreviewController {
   @Roles('ADMIN', 'DATA_ENTRY')
   @Post('/update')
   async updateNotFinal(
+    @Body() ids: BulkRegistryIds,
     @Body() args: UpdateRegistryDto,
     @Session() session: UserSessionType,
   ) {
@@ -108,6 +112,7 @@ export class RegistryPreviewController {
     const position = session.passport.user.position;
 
     return await this.registryPreviewService.updateNotFinalRegistry(
+      ids,
       args,
       userId,
       position,
@@ -118,14 +123,14 @@ export class RegistryPreviewController {
   @Roles('ADMIN', 'DATA_ENTRY')
   @Post('/finalize')
   async finalizeRegistry(
-    @Body() args: RegistryIdDto,
+    @Body() ids: BulkRegistryIds,
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;
     const position = session.passport.user.position;
 
     return await this.registryPreviewService.finalizeRegistry(
-      args,
+      ids,
       userId,
       position,
     );

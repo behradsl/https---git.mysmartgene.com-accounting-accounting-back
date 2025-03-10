@@ -73,9 +73,13 @@ export class CreateRegistryDto {
   @IsString()
   productPriceUsd: string;
 
-  @ApiProperty({ description: 'uds exchange to rial rate ', example: '950000' })
+  @ApiProperty({ description: 'usd exchange to rial rate ', example: '950000' })
   @IsString()
   usdExchangeRate: string;
+
+  @ApiProperty({ description: 'total price in rial currency ', example: '950000000' })
+  @IsString()
+  totalPriceRial: string;
 
   @ApiProperty({
     description: 'Date of receiving data sample',
@@ -129,7 +133,7 @@ export class CreateRegistryDto {
   sendSeries: number;
 }
 
-export class UpdateRegistryDto extends RegistryIdDto {
+export class UpdateRegistryDto {
   @ApiProperty({ description: 'MOT ID', example: '123abc' })
   @IsString()
   @IsOptional()
@@ -186,6 +190,11 @@ export class UpdateRegistryDto extends RegistryIdDto {
   @IsString()
   @IsOptional()
   usdExchangeRate?: string;
+
+  @ApiProperty({ description: 'total price in rial currency ', example: '95000000000' })
+  @IsString()
+  @IsOptional()
+  totalPriceRial?: string;
 
   @ApiProperty({
     description: 'Date of receiving data sample',

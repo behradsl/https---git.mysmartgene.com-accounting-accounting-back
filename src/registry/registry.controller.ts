@@ -54,12 +54,18 @@ export class RegistryController {
   @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
   @Post('/update')
   async updateRegistry(
+    @Body() ids: BulkRegistryIds,
     @Body() args: UpdateRegistryDto,
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;
     const position = session.passport.user.position;
-    return await this.registryService.updateRegistry(args, userId, position);
+    return await this.registryService.updateRegistry(
+      ids,
+      args,
+      userId,
+      position,
+    );
   }
 
   @ApiOperation({

@@ -1,8 +1,17 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
-import { RegistryIdDto, UpdateRegistryDto } from '../dtos/registry.dto';
+import {
+  BulkRegistryIds,
+  RegistryIdDto,
+  UpdateRegistryDto,
+} from '../dtos/registry.dto';
 import { Position } from '@prisma/client';
 import { OrderBy } from 'src/types/global-types';
+import { sampleStatusCalculate } from '../utilities/sampleStatusCal.utilitiels';
 
 @Injectable()
 export class RegistryPreviewService {
@@ -15,7 +24,7 @@ export class RegistryPreviewService {
   ) {
     try {
       const existingRegistry = await this.ormProvider.registry.findUnique({
-        where: { id: args.id , final:false},
+        where: { id: args.id, final: false },
         include: {
           Laboratory: { select: { name: true } },
           registryCreatedBy: {
@@ -43,7 +52,10 @@ export class RegistryPreviewService {
         );
       }
 
-      return { registries: existingRegistry, totalCount: existingRegistry?1:0 };
+      return {
+        registries: existingRegistry,
+        totalCount: existingRegistry ? 1 : 0,
+      };
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -102,134 +114,143 @@ export class RegistryPreviewService {
   }
 
   async updateNotFinalRegistry(
+    { ids }: BulkRegistryIds,
     args: UpdateRegistryDto,
     userId: string,
     position: Position,
   ) {
     try {
-      const existingRegistry = await this.ormProvider.registry.findUnique({
-        where: { id: args.id },
-        select: { userIdRegistryCreatedBy: true, final: true },
+      const existingRegistries = await this.ormProvider.registry.findMany({
+        where: { id: { in: ids }, final: false },
       });
 
-      if (!existingRegistry) {
+      if (existingRegistries.length === 0) {
         throw new BadRequestException('Registry not found');
       }
 
-      if (
-        position === 'DATA_ENTRY' &&
-        !(
-          existingRegistry.userIdRegistryCreatedBy === userId &&
-          !existingRegistry.final
-        )
-      ) {
-        throw new BadRequestException(
-          'You do not have permission to update this registry',
+      const updatedRegistries: {}[] = [];
+
+      for (const existingRegistry of existingRegistries) {
+        if (
+          position === 'DATA_ENTRY' &&
+          !(
+            existingRegistry.userIdRegistryCreatedBy === userId &&
+            !existingRegistry.final
+          )
+        ) {
+          throw new BadRequestException(
+            'You do not have permission to update this registry',
+          );
+        }
+
+        const sampleStatus = sampleStatusCalculate(
+          args.dataSampleReceived ??
+            String(existingRegistry.dataSampleReceived),
+          args.sampleExtractionDate ??
+            String(existingRegistry.sampleExtractionDate),
+          args.dataSentToKorea ?? String(existingRegistry.dataSentToKorea),
+          args.rawFileReceivedDate ??
+            String(existingRegistry.rawFileReceivedDate),
+          args.analysisCompletionDate ??
+            String(existingRegistry.analysisCompletionDate),
         );
+
+        const newRegistry = await this.ormProvider.registry.update({
+          where: { id: existingRegistry.id },
+          data: {
+            personName: args.personName,
+            Laboratory: args.laboratoryId
+              ? { connect: { id: args.laboratoryId } }
+              : undefined,
+            serviceType: args.serviceType,
+            kitType: args.kitType,
+            urgentStatus: args.urgentStatus,
+            productPriceUsd: args.productPriceUsd,
+            usdExchangeRate: args.usdExchangeRate,
+            totalPriceRial: args.totalPriceRial,
+            description: args.description,
+            costumerRelation: args.costumerRelationId
+              ? { connect: { id: args.costumerRelationId } }
+              : undefined,
+            dataSentToKorea: args.dataSentToKorea
+              ? new Date(args.dataSentToKorea)
+              : undefined,
+            dataSampleReceived: args.dataSampleReceived
+              ? new Date(args.dataSampleReceived)
+              : undefined,
+            sampleExtractionDate: args.sampleExtractionDate
+              ? new Date(args.sampleExtractionDate)
+              : undefined,
+            rawFileReceivedDate: args.rawFileReceivedDate
+              ? new Date(args.rawFileReceivedDate)
+              : undefined,
+            analysisCompletionDate: args.analysisCompletionDate
+              ? new Date(args.analysisCompletionDate)
+              : undefined,
+            resultReadyTime: args.resultReadyTime
+              ? new Date(args.resultReadyTime)
+              : undefined,
+            sendSeries: args.sendSeries,
+            sampleStatus: sampleStatus,
+            registryUpdatedBy: { connect: { id: userId } },
+            updatedAt: new Date(),
+          },
+        });
+
+        updatedRegistries.push(newRegistry);
       }
 
-      return await this.ormProvider.registry.update({
-        where: { id: args.id },
-        data: {
-          name: args.name,
-          serviceType: args.serviceType,
-          kitType: args.kitType,
-          urgentStatus: args.urgentStatus,
-
-          price: args.price,
-          description: args.description,
-
-          costumerRelationInfo: args.costumerRelationInfo,
-          KoreaSendDate: args.KoreaSendDate
-            ? new Date(args.KoreaSendDate)
-            : null,
-          resultReady: args.resultReady,
-          resultReadyTime: args.resultReadyTime
-            ? new Date(args.resultReadyTime)
-            : null,
-
-          settlementStatus: args.settlementStatus,
-          invoiceStatus: args.invoiceStatus,
-
-          proformaSent: args.proformaSent,
-          proformaSentDate: args.proformaSentDate
-            ? new Date(args.proformaSentDate)
-            : null,
-
-          totalInvoiceAmount: args.totalInvoiceAmount,
-          installmentOne: args.installmentOne,
-          installmentOneDate: args.installmentOneDate
-            ? new Date(args.installmentOneDate)
-            : null,
-          installmentTwo: args.installmentTwo,
-          installmentTwoDate: args.installmentTwoDate
-            ? new Date(args.installmentTwoDate)
-            : null,
-          installmentThree: args.installmentThree,
-          installmentThreeDate: args.installmentThreeDate
-            ? new Date(args.installmentThreeDate)
-            : null,
-
-          totalPaid: args.totalPaid,
-          paymentPercentage: args.totalInvoiceAmount
-            ? (Number(args.totalPaid) / Number(args.totalInvoiceAmount)) * 100
-            : 0,
-          settlementDate: args.settlementDate
-            ? new Date(args.settlementDate)
-            : null,
-
-          officialInvoiceSent: args.officialInvoiceSent,
-          officialInvoiceSentDate: args.officialInvoiceSentDate
-            ? new Date(args.officialInvoiceSentDate)
-            : null,
-
-          sampleStatus: args.sampleStatus,
-          sendSeries: args.sendSeries,
-
-          updatedAt: new Date(),
-          registryUpdatedBy: { connect: { id: userId } },
-        },
-      });
+      return updatedRegistries;
     } catch (error) {
-      throw new BadRequestException(error);
+      throw error instanceof BadRequestException
+        ? error
+        : new InternalServerErrorException('Unexpected error occurred');
     }
   }
 
   async finalizeRegistry(
-    { id }: RegistryIdDto,
+    { ids }: BulkRegistryIds,
     userId: string,
     position: Position,
   ) {
     try {
-      const existingRegistry = await this.ormProvider.registry.findUnique({
-        where: { id: id },
-        select: { userIdRegistryCreatedBy: true, final: true },
+      const existingRegistries = await this.ormProvider.registry.findMany({
+        where: { id: { in: ids } },
+        select: { userIdRegistryCreatedBy: true, final: true, id: true },
       });
 
-      if (!existingRegistry) {
+      if (existingRegistries.length === 0) {
         throw new BadRequestException('Registry not found');
       }
 
-      if (
-        position === 'DATA_ENTRY' &&
-        !(
-          existingRegistry.userIdRegistryCreatedBy === userId &&
-          !existingRegistry.final
-        )
-      ) {
-        throw new BadRequestException(
-          'You do not have permission to update this registry',
-        );
+      const updatedRegistries: {}[] = [];
+
+      for (const existingRegistry of existingRegistries) {
+        if (
+          position === 'DATA_ENTRY' &&
+          !(
+            existingRegistry.userIdRegistryCreatedBy === userId &&
+            !existingRegistry.final
+          )
+        ) {
+          throw new BadRequestException(
+            'You do not have permission to update this registry',
+          );
+        }
+
+        const newRegistry = await this.ormProvider.registry.update({
+          where: { id: existingRegistry.id },
+          data: {
+            final: true,
+            registryUpdatedBy: { connect: { id: userId } },
+            updatedAt: new Date(),
+          },
+        });
+
+        updatedRegistries.push(newRegistry);
       }
 
-      return await this.ormProvider.registry.update({
-        where: { id: id },
-        data: {
-          final: true,
-          updatedAt: new Date(),
-          registryUpdatedBy: { connect: { id: userId } },
-        },
-      });
+      return updatedRegistries;
     } catch (error) {
       throw new BadRequestException(error);
     }

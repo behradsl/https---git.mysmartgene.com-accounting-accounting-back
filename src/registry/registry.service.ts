@@ -1,4 +1,9 @@
-import { BadRequestException, flatten, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  flatten,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
   BulkRegistryIds,
@@ -35,9 +40,7 @@ export class RegistryService {
           sampleType: args.sampleType,
           productPriceUsd: args.productPriceUsd,
           usdExchangeRate: args.usdExchangeRate,
-          totalPriceRial: (
-            Number(args.productPriceUsd) * Number(args.usdExchangeRate)
-          ).toString(),
+          totalPriceRial: args.totalPriceRial,
           description: args.description,
           dataSampleReceived: new Date(args.dataSampleReceived),
           sampleExtractionDate: args.sampleExtractionDate
@@ -79,97 +82,118 @@ export class RegistryService {
   }
 
   async updateRegistry(
-    args: UpdateRegistryDto,
+    { ids }: BulkRegistryIds,
+    args: Partial<UpdateRegistryDto>,
     userId: string,
     position: Position,
   ) {
     try {
       const editableFields =
         position === 'ADMIN'
-          ? 'ADMIN'
+          ? null
           : await this.ormProvider.registryFieldAccess.findMany({
               where: { position, access: 'EDITABLE' },
               select: { registryField: true },
             });
 
-      const allowedFields =
-        editableFields === 'ADMIN'
-          ? 'ADMIN'
-          : editableFields.map((field) => field.registryField);
+      const allowedFields = editableFields
+        ? editableFields.map((field) => field.registryField)
+        : null;
 
-      const updateData: Record<string, any> = {};
+      const existingRegistries = await this.ormProvider.registry.findMany({
+        where: { id: { in: ids } },
+      });
 
+      if (existingRegistries.length === 0) {
+        throw new BadRequestException('No matching registries found.');
+      }
+
+      const updatedRegistries: {}[] = [];
       const fieldMappings: Record<string, any> = {
-        name: args.name,
-        Laboratory: { connect: { id: args.laboratoryId } },
+        personName: args.personName,
+        Laboratory: args.laboratoryId
+          ? { connect: { id: args.laboratoryId } }
+          : undefined,
         serviceType: args.serviceType,
         kitType: args.kitType,
         urgentStatus: args.urgentStatus,
-        price: args.price,
+        productPriceUsd: args.productPriceUsd,
+        usdExchangeRate: args.usdExchangeRate,
+        totalPriceRial: args.totalPriceRial,
         description: args.description,
-        costumerRelationInfo: args.costumerRelationInfo,
-        KoreaSendDate: args.KoreaSendDate ? new Date(args.KoreaSendDate) : null,
-        resultReady: args.resultReady,
+        costumerRelation: args.costumerRelationId
+          ? { connect: { id: args.costumerRelationId } }
+          : undefined,
+        dataSentToKorea: args.dataSentToKorea
+          ? new Date(args.dataSentToKorea)
+          : undefined,
+        dataSampleReceived: args.dataSampleReceived
+          ? new Date(args.dataSampleReceived)
+          : undefined,
+        sampleExtractionDate: args.sampleExtractionDate
+          ? new Date(args.sampleExtractionDate)
+          : undefined,
+        rawFileReceivedDate: args.rawFileReceivedDate
+          ? new Date(args.rawFileReceivedDate)
+          : undefined,
+        analysisCompletionDate: args.analysisCompletionDate
+          ? new Date(args.analysisCompletionDate)
+          : undefined,
         resultReadyTime: args.resultReadyTime
           ? new Date(args.resultReadyTime)
-          : null,
-        settlementStatus: args.settlementStatus,
-        invoiceStatus: args.invoiceStatus,
-        proformaSent: args.proformaSent,
-        proformaSentDate: args.proformaSentDate
-          ? new Date(args.proformaSentDate)
-          : null,
-        totalInvoiceAmount: args.totalInvoiceAmount,
-        installmentOne: args.installmentOne,
-        installmentOneDate: args.installmentOneDate
-          ? new Date(args.installmentOneDate)
-          : null,
-        installmentTwo: args.installmentTwo,
-        installmentTwoDate: args.installmentTwoDate
-          ? new Date(args.installmentTwoDate)
-          : null,
-        installmentThree: args.installmentThree,
-        installmentThreeDate: args.installmentThreeDate
-          ? new Date(args.installmentThreeDate)
-          : null,
-        totalPaid: args.totalPaid,
-        paymentPercentage: args.totalInvoiceAmount
-          ? (Number(args.totalPaid) / Number(args.totalInvoiceAmount)) * 100
-          : 0,
-        settlementDate: args.settlementDate
-          ? new Date(args.settlementDate)
-          : null,
-        officialInvoiceSent: args.officialInvoiceSent,
-        officialInvoiceSentDate: args.officialInvoiceSentDate
-          ? new Date(args.officialInvoiceSentDate)
-          : null,
-        sampleStatus: args.sampleStatus,
+          : undefined,
         sendSeries: args.sendSeries,
-        updatedAt: new Date(),
       };
 
-      if (allowedFields === 'ADMIN') {
+      const updateData: Record<string, any> = {};
+
+      if (!allowedFields) {
         Object.assign(updateData, fieldMappings);
-      } else if (Array.isArray(allowedFields)) {
+      } else {
         for (const field of Object.keys(fieldMappings)) {
-          if (allowedFields.includes(field)) {
+          if (
+            allowedFields.includes(field) &&
+            args[field as keyof UpdateRegistryDto] !== undefined
+          ) {
             updateData[field] = fieldMappings[field];
           }
         }
       }
 
       if (Object.keys(updateData).length === 0) {
-        throw new BadRequestException('No permitted fields to update');
+        throw new BadRequestException(`No permitted fields to update`);
+      }
+      for (const existingRegistry of existingRegistries) {
+        const sampleStatus = sampleStatusCalculate(
+          args.dataSampleReceived ??
+            String(existingRegistry.dataSampleReceived),
+          args.sampleExtractionDate ??
+            String(existingRegistry.sampleExtractionDate),
+          args.dataSentToKorea ?? String(existingRegistry.dataSentToKorea),
+          args.rawFileReceivedDate ??
+            String(existingRegistry.rawFileReceivedDate),
+          args.analysisCompletionDate ??
+            String(existingRegistry.analysisCompletionDate),
+        );
+
+        const updatedRegistry = await this.ormProvider.registry.update({
+          where: { id: existingRegistry.id, final: true },
+          data: {
+            registryUpdatedBy: { connect: { id: userId } },
+            updatedAt: new Date(),
+            sampleStatus,
+            ...updateData,
+          },
+        });
+
+        updatedRegistries.push(updatedRegistry);
       }
 
-      updateData.registryUpdatedBy = { connect: { id: userId } };
-
-      return await this.ormProvider.registry.update({
-        where: { id: args.id, final: true },
-        data: updateData,
-      });
+      return updatedRegistries;
     } catch (error) {
-      throw new BadRequestException(error);
+      throw error instanceof BadRequestException
+        ? error
+        : new InternalServerErrorException('Unexpected error occurred');
     }
   }
 
