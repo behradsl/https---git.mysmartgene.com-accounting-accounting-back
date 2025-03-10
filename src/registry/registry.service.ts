@@ -9,7 +9,7 @@ import {
 
 import { Position, Prisma } from '@prisma/client';
 import { OrderBy } from 'src/types/global-types';
-import { count } from 'console';
+import { sampleStatusCalculate } from './utilities/sampleStatusCal.utilitiels';
 
 @Injectable()
 export class RegistryService {
@@ -17,62 +17,53 @@ export class RegistryService {
 
   async createRegistry(args: CreateRegistryDto, userId: string) {
     try {
+      const sampleStatus = sampleStatusCalculate(
+        args.dataSampleReceived,
+        args.sampleExtractionDate,
+        args.dataSentToKorea,
+        args.rawFileReceivedDate,
+        args.analysisCompletionDate,
+      );
       return await this.ormProvider.registry.create({
         data: {
           MotId: args.MotId,
-          name: args.name,
+          personName: args.personName,
+          costumerRelation: { connect: { id: args.costumerRelationId } },
           serviceType: args.serviceType,
           kitType: args.kitType,
           urgentStatus: args.urgentStatus ?? false,
-
-          price: args.price,
+          sampleType: args.sampleType,
+          productPriceUsd: args.productPriceUsd,
+          usdExchangeRate: args.usdExchangeRate,
+          totalPriceRial: (
+            Number(args.productPriceUsd) * Number(args.usdExchangeRate)
+          ).toString(),
           description: args.description,
-
-          costumerRelationInfo: args.costumerRelationInfo,
-          KoreaSendDate: args.KoreaSendDate
-            ? new Date(args.KoreaSendDate)
+          dataSampleReceived: new Date(args.dataSampleReceived),
+          sampleExtractionDate: args.sampleExtractionDate
+            ? new Date(args.sampleExtractionDate)
             : null,
-          resultReady: args.resultReady ?? false,
+
+          dataSentToKorea: args.dataSentToKorea
+            ? new Date(args.dataSentToKorea)
+            : null,
+
+          rawFileReceivedDate: args.rawFileReceivedDate
+            ? new Date(args.rawFileReceivedDate)
+            : null,
+
+          analysisCompletionDate: args.analysisCompletionDate
+            ? new Date(args.analysisCompletionDate)
+            : null,
+
           resultReadyTime: args.resultReadyTime
             ? new Date(args.resultReadyTime)
             : null,
 
-          settlementStatus: args.settlementStatus,
-          invoiceStatus: args.invoiceStatus,
-
-          proformaSent: args.proformaSent ?? false,
-          proformaSentDate: args.proformaSentDate
-            ? new Date(args.proformaSentDate)
-            : null,
-
-          totalInvoiceAmount: args.totalInvoiceAmount,
-          installmentOne: args.installmentOne,
-          installmentOneDate: args.installmentOneDate
-            ? new Date(args.installmentOneDate)
-            : null,
-          installmentTwo: args.installmentTwo,
-          installmentTwoDate: args.installmentTwoDate
-            ? new Date(args.installmentTwoDate)
-            : null,
-          installmentThree: args.installmentThree,
-          installmentThreeDate: args.installmentThreeDate
-            ? new Date(args.installmentThreeDate)
-            : null,
-
-          totalPaid: args.totalPaid,
-          paymentPercentage:
-            (Number(args.totalPaid) / Number(args.totalInvoiceAmount)) * 100,
-          settlementDate: args.settlementDate
-            ? new Date(args.settlementDate)
-            : null,
-
-          officialInvoiceSent: args.officialInvoiceSent ?? false,
-          officialInvoiceSentDate: args.officialInvoiceSentDate
-            ? new Date(args.officialInvoiceSentDate)
-            : null,
-
-          sampleStatus: args.sampleStatus,
+          sampleStatus: sampleStatus,
           sendSeries: args.sendSeries,
+          settlementStatus: 'PENDING',
+          invoiceStatus: 'DRAFT',
 
           createdAt: new Date(),
           updatedAt: null,

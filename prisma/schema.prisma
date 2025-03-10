@@ -33,24 +33,31 @@ enum SettlementStatus {
 }
 
 enum InvoiceStatus {
+  DRAFT
   ISSUED
-  NOT_ISSUED
+  PAID
+  OVERDUE
+  CANCELLED
 }
 
 enum SampleStatus {
-  PENDING
-  SHIPMENT
-  SHIPPED
-  RECEIVED_AT_LABORATORY
-  IN_TESTING
-  READY_FOR_DELIVERY
-  DELIVERED
+  SAMPLE_RECEIVED
+  DNA_EXTRACTED
+  SENT_TO_KOREA
+  RAW_FILE_RECEIVED
+  ANALYZED
 }
 
 enum AccessType {
   EDITABLE
   VISIBLE
   HIDDEN
+}
+
+enum SampleType {
+  BLOOD_DNA
+  TISSUE
+  EMBRYO
 }
 
 model User {
@@ -71,6 +78,8 @@ model User {
   RegistryCreatedBy Registry[] @relation(name: "registry-created-by")
 
   RegistryUpdatedBy Registry[] @relation(name: "registry-updated-by")
+
+  RegistryCostumerRelation Registry[] @relation(name: "costumer-relation")
 }
 
 model Laboratory {
@@ -122,57 +131,47 @@ model LaboratoryFormalPaymentInfo {
 }
 
 model Registry {
-  id    String @id @unique @default(uuid())
-  MotId String @unique
-  name  String @db.TinyText
+  id         String @id @unique @default(uuid())
+  MotId      String @unique
+  personName String @db.TinyText
 
   Laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
   laboratoryId String
 
-  serviceType  String   @db.TinyText
-  kitType      String   @db.TinyText
-  urgentStatus Boolean?
+  costumerRelation   User?   @relation(name: "costumer-relation", fields: [costumerRelationId], references: [id])
+  costumerRelationId String?
 
-  price Decimal
+  serviceType String @db.TinyText
+  kitType     String @db.TinyText
+
+  sampleType SampleType
+
+  urgentStatus Boolean?
 
   description String? @db.Text
 
-  costumerRelationInfo String?
-  KoreaSendDate        DateTime?
+  productPriceUsd Decimal?
+  usdExchangeRate Decimal?
+  totalPriceRial  Decimal?
 
-  resultReady     Boolean?
+  dataSampleReceived DateTime
+
+  sampleExtractionDate DateTime?
+
+  dataSentToKorea     DateTime?
+  rawFileReceivedDate DateTime?
+
+  analysisCompletionDate DateTime?
+
   resultReadyTime DateTime?
-
-  settlementStatus SettlementStatus
-  invoiceStatus    InvoiceStatus
-
-  proformaSent Boolean?
-
-  proformaSentDate DateTime?
-
-  totalInvoiceAmount Decimal
-
-  installmentOne     Decimal?
-  installmentOneDate DateTime?
-
-  installmentTwo     Decimal?
-  installmentTwoDate DateTime?
-
-  installmentThree     Decimal?
-  installmentThreeDate DateTime?
-
-  totalPaid Decimal
-
-  paymentPercentage Decimal
-
-  settlementDate DateTime?
-
-  officialInvoiceSent     Boolean?
-  officialInvoiceSentDate DateTime?
 
   sampleStatus SampleStatus
 
-  sendSeries String
+  sendSeries Int
+
+  settlementStatus SettlementStatus
+
+  invoiceStatus InvoiceStatus
 
   createdAt DateTime  @default(now())
   updatedAt DateTime?
