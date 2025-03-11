@@ -60,6 +60,24 @@ enum SampleType {
   EMBRYO
 }
 
+enum Currency {
+  DOLLAR
+  RIAL
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+  PARTIALLY_PAID
+}
+
+enum LaboratorySettlementStatus {
+  PENDING
+  PARTIALLY_SETTLED
+  FULLY_SETTLED
+  OVERDUE
+}
+
 model User {
   id           String    @id @unique @default(uuid())
   name         String    @db.VarChar(255)
@@ -80,6 +98,18 @@ model User {
   RegistryUpdatedBy Registry[] @relation(name: "registry-updated-by")
 
   RegistryCostumerRelation Registry[] @relation(name: "costumer-relation")
+
+  LaboratoryInvoicesUpdatedBy LaboratoryInvoice[] @relation(name: "invoice-updated-by")
+
+  LaboratoryInvoicesCreatedBy LaboratoryInvoice[] @relation(name: "invoice-created-by")
+
+  PaymentsCreatedBy Payment[] @relation(name: "payment-createdBy")
+
+  PaymentsUpdatedBy Payment[] @relation(name: "payment-updatedBy")
+
+  SettlementCreatedBy Settlement[] @relation(name: "settlement-createdBy")
+
+  SettlementUpdatedBy Settlement[] @relation(name: "settlement-updatedBy")
 }
 
 model Laboratory {
@@ -106,6 +136,12 @@ model Laboratory {
   LaboratoryFormalPaymentInfo LaboratoryFormalPaymentInfo?
 
   Registry Registry[]
+
+  LaboratoryInvoices LaboratoryInvoice[]
+
+  Payments Payment[]
+
+  Settlement Settlement[]
 }
 
 model LaboratoryFormalPaymentInfo {
@@ -185,6 +221,9 @@ model Registry {
   removedAt DateTime?
 
   final Boolean @default(false)
+
+  Invoice              LaboratoryInvoice? @relation(fields: [LaboratoryInvoicesId], references: [id])
+  LaboratoryInvoicesId String?
 }
 
 model RegistryFieldAccess {
@@ -194,4 +233,93 @@ model RegistryFieldAccess {
   access        AccessType
 
   @@unique(fields: [position, registryField], name: "position_registryField")
+}
+
+model LaboratoryInvoice {
+  id            String   @id @unique @default(uuid())
+  invoiceNumber Int      @unique @default(autoincrement())
+  invoiceDate   DateTime @default(now())
+
+  Laboratory   Laboratory @relation(fields: [LaboratoryId], references: [id])
+  LaboratoryId String
+
+  currency Currency
+
+  status InvoiceStatus @default(DRAFT)
+
+  paymentDueDate DateTime?
+
+  paymentStatus PaymentStatus
+
+  notes String?
+
+  Registries Registry[]
+
+  totalUsdPrice  Decimal?
+  totalRialPrice Decimal?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+
+  createdBy   User   @relation(fields: [createdById], references: [id], name: "invoice-created-by")
+  createdById String
+
+  updatedBy   User?   @relation(fields: [updatedById], references: [id], name: "invoice-updated-by")
+  updatedById String?
+
+  Payments Payment[]
+}
+
+model Payment {
+  id String @id @unique @default(uuid())
+
+  Laboratory   Laboratory @relation(fields: [LaboratoryId], references: [id])
+  LaboratoryId String
+
+  LaboratoryInvoice   LaboratoryInvoice @relation(fields: [LaboratoryInvoiceId], references: [id])
+  LaboratoryInvoiceId String
+
+  amountPaid Decimal
+
+  paymentDate DateTime
+
+  currency Currency
+
+  notes String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+
+  createdBy   User   @relation(fields: [createdById], references: [id], name: "payment-createdBy")
+  createdById String
+
+  updatedBy   User?   @relation(fields: [updatedById], references: [id], name: "payment-updatedBy")
+  updatedById String?
+}
+
+model Settlement {
+  id String @id @unique @default(uuid())
+
+  Laboratory   Laboratory @relation(fields: [LaboratoryId], references: [id])
+  LaboratoryId String
+
+  totalInvoiceAmount Decimal
+  totalPaidAmount    Decimal
+
+  outStandingAmount Decimal
+
+  status LaboratorySettlementStatus
+
+  dueDate DateTime?
+
+  installmentPlan Json
+
+  createdAt DateTime
+  UpdatedAt DateTime?
+
+  createdBy   User   @relation(fields: [createdById], references: [id], name: "settlement-createdBy")
+  createdById String
+
+  updatedBy   User?   @relation(fields: [updatedById], references: [id], name: "settlement-updatedBy")
+  updatedById String?
 }
