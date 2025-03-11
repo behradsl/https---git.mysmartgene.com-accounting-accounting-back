@@ -28,5 +28,6 @@ import { UserModule } from 'src/user/user.module';
     ExportRegistryController,
     RegistryPreviewController,
   ],
+  exports:[RegistryService]
 })
 export class RegistryModule {}

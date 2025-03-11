@@ -15,6 +15,7 @@ import {
 import { Position, Prisma } from '@prisma/client';
 import { OrderBy } from 'src/types/global-types';
 import { sampleStatusCalculate } from './utilities/sampleStatusCal.utilitiels';
+import { InvoiceIdDto } from 'src/invoice/dtos/invoice.dto';
 
 @Injectable()
 export class RegistryService {
@@ -263,6 +264,68 @@ export class RegistryService {
       });
 
       return deletedRegistries;
-    } catch (error) {}
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async calculateTotalPrices({ ids }: BulkRegistryIds) {
+    try {
+      const registries = await this.ormProvider.registry.findMany({
+        where: {
+          id: { in: ids },
+        },
+      });
+
+      const registryNullPrice = registries.map((registry) => {
+        if (
+          registry.totalPriceRial === null ||
+          registry.usdExchangeRate === null ||
+          registry.productPriceUsd === null
+        ) {
+          return registry.MotId;
+        }
+      });
+
+      if (registryNullPrice.length > 0) {
+        throw new BadRequestException(
+          `Registries with MOT ID(s) ${registryNullPrice.join(', ')} have empty prices.`,
+        );
+      }
+
+      const totalPrices = await this.ormProvider.registry.aggregate({
+        where: { id: { in: ids } },
+        _sum: {
+          productPriceUsd: true,
+          totalPriceRial: true,
+        },
+      });
+
+      const totalUsdPrice =
+        totalPrices._sum.productPriceUsd ??
+        (() => {
+          throw new BadRequestException('Could not calculate total USD price');
+        })();
+      const totalRialPrice =
+        totalPrices._sum.totalPriceRial ??
+        (() => {
+          throw new BadRequestException('Could not calculate total Rial price');
+        })();
+
+      return { totalUsdPrice: totalUsdPrice, totalRialPrice: totalRialPrice };
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async assignInvoice({ ids }: BulkRegistryIds, { id }: InvoiceIdDto) {
+    try {
+      await this.ormProvider.registry.updateMany({
+        where: { id: { in: ids } },
+        data: { LaboratoryInvoiceId: id },
+      });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 }
