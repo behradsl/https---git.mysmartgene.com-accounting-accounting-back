@@ -222,8 +222,8 @@ model Registry {
 
   final Boolean @default(false)
 
-  Invoice              LaboratoryInvoice? @relation(fields: [LaboratoryInvoicesId], references: [id])
-  LaboratoryInvoicesId String?
+  Invoice              LaboratoryInvoice? @relation(fields: [LaboratoryInvoiceId], references: [id])
+  LaboratoryInvoiceId String?
 }
 
 model RegistryFieldAccess {
@@ -255,8 +255,8 @@ model LaboratoryInvoice {
 
   Registries Registry[]
 
-  totalUsdPrice  Decimal?
-  totalRialPrice Decimal?
+  totalUsdPrice  Decimal
+  totalRialPrice Decimal
 
   createdAt DateTime  @default(now())
   updatedAt DateTime?
@@ -285,7 +285,7 @@ model Payment {
 
   currency Currency
 
-  notes String
+  notes String?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime?
