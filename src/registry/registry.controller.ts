@@ -27,6 +27,8 @@ import { OrderBy, UserSessionType } from 'src/types/global-types';
 import { RegistryService } from './registry.service';
 
 import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
+import { InvoiceIdDto } from 'src/invoice/dtos/invoice.dto';
+import { LaboratoryIdDto } from 'src/laboratory/dtos/laboratory.dto';
 
 @ApiTags('registry')
 @UseGuards(LocalGuard, RolesGuard)
@@ -145,5 +147,119 @@ export class RegistryController {
   ) {
     const userId = session.passport.user.id;
     return await this.registryService.deleteRegistry({ ids }, userId);
+  }
+
+  @ApiOperation({
+    description:
+      "roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' ",
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 15,
+    description: 'Number of records per page (default: 15)',
+  })
+  @ApiQuery({
+    name: 'sortingBy',
+    required: false,
+    example: 'MotId',
+    description: 'fieldNAme registries would be sorted by (default: createdAt)',
+  })
+  @ApiQuery({
+    name: 'orderBy',
+    required: false,
+    example: OrderBy.asc,
+    description: 'order of registry sorting (default: asd )',
+  })
+  @UseInterceptors(FieldVisibilityInterceptor)
+  @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
+  @Get('/find/invoice/:id')
+  async findByInvoice(
+    @Param() args: InvoiceIdDto,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortingBy') sortingBy?: string,
+    @Query('orderBy') orderBy?: OrderBy,
+  ) {
+    try {
+      const pageNumber = page ? parseInt(page, 10) : 1;
+      const limitNumber = limit ? parseInt(limit, 10) : 15;
+      if (pageNumber < 1)
+        throw new BadRequestException('Page number must be at least 1');
+      if (limitNumber < 1)
+        throw new BadRequestException('Limit must be at least 1');
+      return await this.registryService.findByInvoice(
+        args,
+        pageNumber,
+        limitNumber,
+        sortingBy,
+        orderBy,
+      );
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @ApiOperation({
+    description:
+      "roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' ",
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 15,
+    description: 'Number of records per page (default: 15)',
+  })
+  @ApiQuery({
+    name: 'sortingBy',
+    required: false,
+    example: 'MotId',
+    description: 'fieldNAme registries would be sorted by (default: createdAt)',
+  })
+  @ApiQuery({
+    name: 'orderBy',
+    required: false,
+    example: OrderBy.asc,
+    description: 'order of registry sorting (default: asd )',
+  })
+  @UseInterceptors(FieldVisibilityInterceptor)
+  @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
+  @Get('/find/laboratory/:id')
+  async findByLaboratory(
+    @Param() args: LaboratoryIdDto,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortingBy') sortingBy?: string,
+    @Query('orderBy') orderBy?: OrderBy,
+  ) {
+    try {
+      const pageNumber = page ? parseInt(page, 10) : 1;
+      const limitNumber = limit ? parseInt(limit, 10) : 15;
+      if (pageNumber < 1)
+        throw new BadRequestException('Page number must be at least 1');
+      if (limitNumber < 1)
+        throw new BadRequestException('Limit must be at least 1');
+      return await this.registryService.findByLaboratory(
+        args,
+        pageNumber,
+        limitNumber,
+        sortingBy,
+        orderBy,
+      );
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }

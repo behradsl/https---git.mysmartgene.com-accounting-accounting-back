@@ -1,8 +1,8 @@
 import {
   BadRequestException,
-  flatten,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
@@ -17,6 +17,7 @@ import { Position, Prisma } from '@prisma/client';
 import { OrderBy } from 'src/types/global-types';
 import { sampleStatusCalculate } from './utilities/sampleStatusCal.utilitiels';
 import { InvoiceIdDto } from 'src/invoice/dtos/invoice.dto';
+import { LaboratoryIdDto } from 'src/laboratory/dtos/laboratory.dto';
 
 @Injectable()
 export class RegistryService {
@@ -328,6 +329,115 @@ export class RegistryService {
         where: { id: { in: ids } },
         data: { LaboratoryInvoiceId: invoiceId, invoiceStatus: invoiceStatus },
       });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async findManyById(args: BulkRegistryIds) {
+    try {
+      const registries = await this.ormProvider.registry.findMany({
+        where: { id: { in: args.ids } },
+        include: { Laboratory: true },
+      });
+
+      return registries;
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
+  }
+
+  async findByInvoice(
+    { id }: InvoiceIdDto,
+    page: number = 1,
+    limit: number = 15,
+    sortingBy: string = 'createdAt',
+    orderBy: OrderBy = OrderBy.asc,
+  ) {
+    try {
+      const skip = (page - 1) * limit;
+
+      const registriesCount = await this.ormProvider.registry.count({
+        where: { final: true, LaboratoryInvoiceId: id },
+      });
+      const registries = await this.ormProvider.registry.findMany({
+        where: { LaboratoryInvoiceId: id },
+
+        take: limit,
+        skip: skip,
+        orderBy: { [sortingBy]: orderBy },
+        include: {
+          Laboratory: { select: { name: true } },
+          registryCreatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+          registryUpdatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+        },
+      });
+
+      return { registries: registries, totalCount: registriesCount };
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
+  }
+
+  async findByLaboratory(
+    { id }: LaboratoryIdDto,
+    page: number = 1,
+    limit: number = 15,
+    sortingBy: string = 'createdAt',
+    orderBy: OrderBy = OrderBy.asc,
+  ) {
+    try {
+      const skip = (page - 1) * limit;
+
+      const registriesCount = await this.ormProvider.registry.count({
+        where: { final: true, laboratoryId: id },
+      });
+      const registries = await this.ormProvider.registry.findMany({
+        where: { laboratoryId: id },
+
+        take: limit,
+        skip: skip,
+        orderBy: { [sortingBy]: orderBy },
+        include: {
+          Laboratory: { select: { name: true } },
+          registryCreatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+          registryUpdatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+        },
+      });
+
+      return { registries: registries, totalCount: registriesCount };
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
+  }
+
+  async checkLaboratory(args: BulkRegistryIds) {
+    try {
+      const registries = await this.findManyById(args);
+
+      if (registries.length === 0) {
+        throw new BadRequestException('No registries found.');
+      }
+
+      const laboratoryIds = new Set(
+        registries.map((registry) => registry.Laboratory?.id),
+      );
+
+      if (laboratoryIds.size > 1) {
+        throw new BadRequestException(
+          'All registries must belong to the same Laboratory.',
+        );
+      }
+
+      return [...laboratoryIds][0];
     } catch (error) {
       throw new BadRequestException(error);
     }

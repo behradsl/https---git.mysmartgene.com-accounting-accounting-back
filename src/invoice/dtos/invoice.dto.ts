@@ -31,15 +31,6 @@ export class CreateInvoiceDto {
   invoiceDate?: string;
 
   @ApiProperty({
-    description: 'laboratory id uuid',
-    example: '',
-    required: true,
-    type: 'string',
-  })
-  @IsString()
-  LaboratoryId: string;
-
-  @ApiProperty({
     description: 'invoice currency',
     example: 'DOLLAR',
     required: true,
@@ -102,15 +93,7 @@ export class UpdateInvoiceDto {
   @IsISO8601()
   invoiceDate?: string;
 
-  @ApiProperty({
-    description: 'laboratory id uuid',
-    example: '',
-    required: false,
-    type: 'string',
-  })
-  @IsString()
-  LaboratoryId?: string;
-
+  
   @ApiProperty({
     description: 'invoice currency',
     example: 'DOLLAR',

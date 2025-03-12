@@ -1,14 +1,17 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   Param,
   Post,
+  Query,
   Session,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
@@ -17,7 +20,9 @@ import {
   InvoiceIdDto,
   UpdateInvoiceDto,
 } from './dtos/invoice.dto';
-import { UserSessionType } from 'src/types/global-types';
+import { OrderBy, UserSessionType } from 'src/types/global-types';
+import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
+import { LaboratoryIdDto } from 'src/laboratory/dtos/laboratory.dto';
 
 @ApiTags('/invoice')
 @UseGuards(LocalGuard, RolesGuard)
@@ -62,5 +67,113 @@ export class InvoiceController {
     return await this.invoiceService.findOne(args);
   }
 
-  
+  @ApiOperation({
+    description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 15,
+    description: 'Number of records per page (default: 15)',
+  })
+  @ApiQuery({
+    name: 'sortingBy',
+    required: false,
+    example: 'MotId',
+    description: 'fieldNAme registries would be sorted by (default: createdAt)',
+  })
+  @ApiQuery({
+    name: 'orderBy',
+    required: false,
+    example: OrderBy.asc,
+    description: 'order of registry sorting (default: asd )',
+  })
+  @UseInterceptors(FieldVisibilityInterceptor)
+  @Roles('ADMIN', 'FINANCE_MANAGER')
+  @Get('/find/all')
+  async findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortingBy') sortingBy?: string,
+    @Query('orderBy') orderBy?: OrderBy,
+  ) {
+    try {
+      const pageNumber = page ? parseInt(page, 10) : 1;
+      const limitNumber = limit ? parseInt(limit, 10) : 15;
+      if (pageNumber < 1)
+        throw new BadRequestException('Page number must be at least 1');
+      if (limitNumber < 1)
+        throw new BadRequestException('Limit must be at least 1');
+      return await this.invoiceService.findAll(
+        pageNumber,
+        limitNumber,
+        sortingBy,
+        orderBy,
+      );
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @ApiOperation({
+    description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 15,
+    description: 'Number of records per page (default: 15)',
+  })
+  @ApiQuery({
+    name: 'sortingBy',
+    required: false,
+    example: 'MotId',
+    description: 'fieldNAme registries would be sorted by (default: createdAt)',
+  })
+  @ApiQuery({
+    name: 'orderBy',
+    required: false,
+    example: OrderBy.asc,
+    description: 'order of registry sorting (default: asd )',
+  })
+  @UseInterceptors(FieldVisibilityInterceptor)
+  @Roles('ADMIN', 'FINANCE_MANAGER')
+  @Get('/find/Laboratory/:id')
+  async findByLaboratory(
+    @Param() args: LaboratoryIdDto,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortingBy') sortingBy?: string,
+    @Query('orderBy') orderBy?: OrderBy,
+  ) {
+    try {
+      const pageNumber = page ? parseInt(page, 10) : 1;
+      const limitNumber = limit ? parseInt(limit, 10) : 15;
+      if (pageNumber < 1)
+        throw new BadRequestException('Page number must be at least 1');
+      if (limitNumber < 1)
+        throw new BadRequestException('Limit must be at least 1');
+      return await this.invoiceService.findAByLaboratory(
+        args,
+        pageNumber,
+        limitNumber,
+        sortingBy,
+        orderBy,
+      );
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }
