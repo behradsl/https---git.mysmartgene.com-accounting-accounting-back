@@ -86,8 +86,6 @@ export class ImportRegistryService {
             );
           }
 
-          
-          
           const userCostumerRelation = data.costumerRelation
             ? await this.userService.findByContactInfo(
                 String(data.costumerRelation),
@@ -105,7 +103,6 @@ export class ImportRegistryService {
           const { Laboratory, costumerRelation, ...filteredData } = data;
 
           dataToImport.push({
-            invoiceStatus: 'DRAFT',
             laboratoryId: laboratory.id,
             sampleStatus: sampleStatus,
             settlementStatus: 'PENDING',

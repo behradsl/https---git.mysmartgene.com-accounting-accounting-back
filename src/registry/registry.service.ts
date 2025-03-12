@@ -8,6 +8,7 @@ import { OrmProvider } from 'src/providers/orm.provider';
 import {
   BulkRegistryIds,
   CreateRegistryDto,
+  RegistryAssignInvoiceDto,
   RegistryIdDto,
   UpdateRegistryDto,
 } from './dtos/registry.dto';
@@ -67,7 +68,6 @@ export class RegistryService {
           sampleStatus: sampleStatus,
           sendSeries: args.sendSeries,
           settlementStatus: 'PENDING',
-          invoiceStatus: 'DRAFT',
 
           createdAt: new Date(),
           updatedAt: null,
@@ -269,11 +269,11 @@ export class RegistryService {
     }
   }
 
-  async calculateTotalPrices({ ids }: BulkRegistryIds) {
+  async calculateTotalPrices(ids: BulkRegistryIds) {
     try {
       const registries = await this.ormProvider.registry.findMany({
         where: {
-          id: { in: ids },
+          id: { in: ids.ids },
         },
       });
 
@@ -294,7 +294,7 @@ export class RegistryService {
       }
 
       const totalPrices = await this.ormProvider.registry.aggregate({
-        where: { id: { in: ids } },
+        where: { id: { in: ids.ids } },
         _sum: {
           productPriceUsd: true,
           totalPriceRial: true,
@@ -318,11 +318,15 @@ export class RegistryService {
     }
   }
 
-  async assignInvoice({ ids }: BulkRegistryIds, { id }: InvoiceIdDto) {
+  async assignInvoice({
+    ids,
+    invoiceId,
+    invoiceStatus,
+  }: RegistryAssignInvoiceDto) {
     try {
       await this.ormProvider.registry.updateMany({
         where: { id: { in: ids } },
-        data: { LaboratoryInvoiceId: id },
+        data: { LaboratoryInvoiceId: invoiceId, invoiceStatus: invoiceStatus },
       });
     } catch (error) {
       throw new BadRequestException(error);

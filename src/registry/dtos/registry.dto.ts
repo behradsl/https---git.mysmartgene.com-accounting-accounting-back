@@ -77,7 +77,10 @@ export class CreateRegistryDto {
   @IsString()
   usdExchangeRate: string;
 
-  @ApiProperty({ description: 'total price in rial currency ', example: '950000000' })
+  @ApiProperty({
+    description: 'total price in rial currency ',
+    example: '950000000',
+  })
   @IsString()
   totalPriceRial: string;
 
@@ -191,7 +194,10 @@ export class UpdateRegistryDto {
   @IsOptional()
   usdExchangeRate?: string;
 
-  @ApiProperty({ description: 'total price in rial currency ', example: '95000000000' })
+  @ApiProperty({
+    description: 'total price in rial currency ',
+    example: '95000000000',
+  })
   @IsString()
   @IsOptional()
   totalPriceRial?: string;
@@ -248,4 +254,9 @@ export class UpdateRegistryDto {
   @IsString()
   @IsOptional()
   sendSeries?: number;
+}
+
+export class RegistryAssignInvoiceDto extends BulkRegistryIds {
+  invoiceId: string;
+  invoiceStatus: InvoiceStatus;
 }

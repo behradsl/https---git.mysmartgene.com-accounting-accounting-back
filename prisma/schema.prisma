@@ -207,7 +207,7 @@ model Registry {
 
   settlementStatus SettlementStatus
 
-  invoiceStatus InvoiceStatus
+  invoiceStatus InvoiceStatus?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime?

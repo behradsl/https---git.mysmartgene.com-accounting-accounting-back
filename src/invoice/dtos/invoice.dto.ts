@@ -91,3 +91,79 @@ export class CreateInvoiceDto {
   @IsArray()
   registryIds: string[];
 }
+
+export class UpdateInvoiceDto {
+  @ApiProperty({
+    description: 'invoice date',
+    example: '2025-02-01T00:00:00.000Z',
+    required: false,
+  })
+  @IsOptional()
+  @IsISO8601()
+  invoiceDate?: string;
+
+  @ApiProperty({
+    description: 'laboratory id uuid',
+    example: '',
+    required: false,
+    type: 'string',
+  })
+  @IsString()
+  LaboratoryId?: string;
+
+  @ApiProperty({
+    description: 'invoice currency',
+    example: 'DOLLAR',
+    required: false,
+    enum: Currency,
+  })
+  @IsEnum(Currency)
+  currency?: Currency;
+
+  @ApiProperty({
+    description: 'invoice status',
+    example: 'DRAFT',
+    required: false,
+    enum: InvoiceStatus,
+  })
+  @IsOptional()
+  @IsEnum(InvoiceStatus)
+  status?: InvoiceStatus;
+
+  @ApiProperty({
+    description: 'invoice payment due date',
+    example: '2025-02-01T00:00:00.000Z',
+    required: false,
+  })
+  @IsOptional()
+  @IsISO8601()
+  paymentDueDate?: Date;
+
+  @ApiProperty({
+    description: 'invoice payment status',
+    example: 'UNPAID',
+    required: false,
+    enum: PaymentStatus,
+  })
+  @IsOptional()
+  @IsEnum(PaymentStatus)
+  paymentStatus?: PaymentStatus;
+
+  @ApiProperty({
+    description: 'invoice notes',
+    example: 'something about invoice',
+    required: false,
+    type: 'string',
+  })
+  @IsString()
+  @IsOptional()
+  notes?: string;
+
+  @ApiProperty({
+    description: 'invoice registries uuid ids',
+    example: [],
+    required: false,
+  })
+  @IsArray()
+  registryIds?: string[];
+}
