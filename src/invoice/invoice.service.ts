@@ -84,7 +84,9 @@ export class InvoiceService {
         where: { id: id },
         data: {
           ...updateData,
-          Laboratory: { connect: { id: laboratoryId } },
+          Laboratory: laboratoryId
+            ? { connect: { id: laboratoryId } }
+            : undefined,
           Registries: {
             set: registryIds ? registryIds.map((id) => ({ id })) : undefined,
           },
@@ -96,7 +98,10 @@ export class InvoiceService {
       });
 
       return newInvoice;
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestException(error);
+    }
   }
 
   async findOne({ id }: InvoiceIdDto) {
@@ -176,6 +181,35 @@ export class InvoiceService {
       return { invoices: invoices, totalCount: invoicesCount };
     } catch (error) {
       throw new NotFoundException(error);
+    }
+  }
+
+  async invoiceIssuance({ id }: InvoiceIdDto, userId: string) {
+    try {
+      const invoice = await this.ormProvider.laboratoryInvoice.findUnique({
+        where: { id: id },
+      });
+
+      if (!invoice) {
+        throw new NotFoundException('invoice not found!');
+      }
+
+      if (invoice.status != 'DRAFT') {
+        throw new BadRequestException('invoice is already issued!');
+      }
+
+      const issuedInvoice = await this.ormProvider.laboratoryInvoice.update({
+        where: { id: id },
+        data: {
+          status: 'ISSUED',
+          updatedAt: new Date(),
+          updatedBy: { connect: { id: userId } },
+        },
+      });
+
+      return issuedInvoice;
+    } catch (error) {
+      throw new BadRequestException(error);
     }
   }
 }

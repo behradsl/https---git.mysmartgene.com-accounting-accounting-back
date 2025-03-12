@@ -11,7 +11,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
-import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
@@ -46,30 +46,6 @@ export class InvoiceController {
   @ApiOperation({
     description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
   })
-  @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('/update/:id')
-  async update(
-    @Param() invoiceId: InvoiceIdDto,
-    @Body() args: Partial<UpdateInvoiceDto>,
-    @Session() session: UserSessionType,
-  ) {
-    const userId = session.passport.user.id;
-
-    return await this.invoiceService.update(args, invoiceId, { id: userId });
-  }
-
-  @ApiOperation({
-    description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
-  })
-  @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Get('/find/:id')
-  async findOne(args: InvoiceIdDto) {
-    return await this.invoiceService.findOne(args);
-  }
-
-  @ApiOperation({
-    description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
-  })
   @ApiQuery({
     name: 'page',
     required: false,
@@ -85,7 +61,7 @@ export class InvoiceController {
   @ApiQuery({
     name: 'sortingBy',
     required: false,
-    example: 'MotId',
+    example: 'createdAt',
     description: 'fieldNAme registries would be sorted by (default: createdAt)',
   })
   @ApiQuery({
@@ -94,7 +70,6 @@ export class InvoiceController {
     example: OrderBy.asc,
     description: 'order of registry sorting (default: asd )',
   })
-  @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'FINANCE_MANAGER')
   @Get('/find/all')
   async findAll(
@@ -120,7 +95,6 @@ export class InvoiceController {
       throw new BadRequestException(error.message);
     }
   }
-
   @ApiOperation({
     description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
   })
@@ -139,7 +113,7 @@ export class InvoiceController {
   @ApiQuery({
     name: 'sortingBy',
     required: false,
-    example: 'MotId',
+    example: 'createdAt',
     description: 'fieldNAme registries would be sorted by (default: createdAt)',
   })
   @ApiQuery({
@@ -148,7 +122,6 @@ export class InvoiceController {
     example: OrderBy.asc,
     description: 'order of registry sorting (default: asd )',
   })
-  @UseInterceptors(FieldVisibilityInterceptor)
   @Roles('ADMIN', 'FINANCE_MANAGER')
   @Get('/find/Laboratory/:id')
   async findByLaboratory(
@@ -175,5 +148,44 @@ export class InvoiceController {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
+  }
+
+  @ApiOperation({
+    description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
+  })
+  @Roles('ADMIN', 'FINANCE_MANAGER')
+  @Get('/find/:id')
+  async findOne(@Param() { id }: InvoiceIdDto) {
+    return await this.invoiceService.findOne({ id });
+  }
+
+  @ApiOperation({
+    description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
+  })
+  @ApiBody({ type: UpdateInvoiceDto, description: 'Partial update of invoice' })
+  @Roles('ADMIN', 'FINANCE_MANAGER')
+  @Post('/update/:id')
+  async update(
+    @Param() invoiceId: InvoiceIdDto,
+    @Body() args: Partial<UpdateInvoiceDto>,
+    @Session() session: UserSessionType,
+  ) {
+    const userId = session.passport.user.id;
+
+    return this.invoiceService.update(args, invoiceId, { id: userId });
+  }
+
+  @ApiOperation({
+    description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
+  })
+  @Roles('ADMIN', 'FINANCE_MANAGER')
+  @Post('/issuance/:id')
+  async invoiceIssuance(
+    @Param() args: InvoiceIdDto,
+    @Session() session: UserSessionType,
+  ) {
+
+    const userId = session.passport.user.id
+    return this.invoiceService.invoiceIssuance(args , userId);
   }
 }

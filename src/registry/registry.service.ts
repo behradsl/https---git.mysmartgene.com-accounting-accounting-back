@@ -277,16 +277,19 @@ export class RegistryService {
           id: { in: ids.ids },
         },
       });
+      console.log(registries);
 
-      const registryNullPrice = registries.map((registry) => {
+      const registryNullPrice: string[] = [];
+      registries.forEach((registry) => {
         if (
           registry.totalPriceRial === null ||
           registry.usdExchangeRate === null ||
           registry.productPriceUsd === null
         ) {
-          return registry.MotId;
+          registryNullPrice.push(registry.MotId);
         }
       });
+      console.log(registryNullPrice);
 
       if (registryNullPrice.length > 0) {
         throw new BadRequestException(
