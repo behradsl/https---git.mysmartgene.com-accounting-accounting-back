@@ -68,7 +68,7 @@ export class CreatePaymentDto {
   notes?: string;
 }  
 
-export class UpdatePaymentDto extends PaymentIdDto {
+export class UpdatePaymentDto {
   @ApiProperty({
     description: 'invoice id uuid',
     example: '',

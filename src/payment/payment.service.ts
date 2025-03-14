@@ -4,7 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
-import { CreatePaymentDto, UpdatePaymentDto } from './dtos/payment.dto';
+import {
+  CreatePaymentDto,
+  PaymentIdDto,
+  UpdatePaymentDto,
+} from './dtos/payment.dto';
 import { InvoiceService } from 'src/invoice/invoice.service';
 import { UserIdDto } from 'src/user/dtos/user.dto';
 
@@ -12,6 +16,7 @@ import { InvoiceIdDto } from 'src/invoice/dtos/invoice.dto';
 
 import Big from 'big.js';
 import { PaymentStatus } from '@prisma/client';
+import { OrderBy } from 'src/types/global-types';
 
 @Injectable()
 export class PaymentService {
@@ -71,7 +76,7 @@ export class PaymentService {
     }
   }
 
-  async update(args: Partial<UpdatePaymentDto>, userId: UserIdDto) {
+  async update(args: Partial<UpdatePaymentDto>, userId: UserIdDto , {id}:PaymentIdDto) {
     try {
       const { LaboratoryInvoiceId, ...paymentInfo } = args;
 
@@ -84,12 +89,17 @@ export class PaymentService {
       if (LaboratoryInvoiceId && !invoice)
         throw new NotFoundException('invoice not Found!');
 
-      const payment = await this.ormProvider.payment.update({where:{id:args.id},
+      const payment = await this.ormProvider.payment.update({
+        where: { id: id },
         data: {
-          Laboratory:invoice? { connect: { id: invoice.LaboratoryId } }:undefined,
-          LaboratoryInvoice: LaboratoryInvoiceId?{ connect: { id: LaboratoryInvoiceId } }:undefined,
+          Laboratory: invoice
+            ? { connect: { id: invoice.LaboratoryId } }
+            : undefined,
+          LaboratoryInvoice: LaboratoryInvoiceId
+            ? { connect: { id: LaboratoryInvoiceId } }
+            : undefined,
           updatedBy: { connect: { id: userId.id } },
-          updatedAt:new Date(),
+          updatedAt: new Date(),
           ...paymentInfo,
         },
         include: { LaboratoryInvoice: true },
@@ -126,6 +136,48 @@ export class PaymentService {
     }
   }
 
+  async findOne({ id }: PaymentIdDto) {
+    try {
+      const payment = await this.ormProvider.laboratoryInvoice.findUnique({
+        where: { id: id },
+      });
+      return payment;
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
+  }
+
+  async findAll(
+    page: number = 1,
+    limit: number = 15,
+    sortingBy: string = 'createdAt',
+    orderBy: OrderBy = OrderBy.asc,
+  ) {
+    try {
+      const skip = (page - 1) * limit;
+
+      const paymentsCount = await this.ormProvider.payment.count({});
+
+      const payments = await this.ormProvider.payment.findMany({
+        take: limit,
+        skip: skip,
+        orderBy: { [sortingBy]: orderBy },
+        include: {
+          createdBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+          updatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+          Laboratory: { select: { name: true } },
+        },
+      });
+      return { payments: payments, totalCount: paymentsCount };
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
+  }
+
   async sumOfInvoicePayments({ id }: InvoiceIdDto) {
     try {
       const usdPaymentsSum = await this.ormProvider.payment.aggregate({
@@ -145,4 +197,42 @@ export class PaymentService {
       throw new BadRequestException(error);
     }
   }
+
+
+  async findAByLaboratory(
+      { id }: PaymentIdDto,
+      page: number = 1,
+      limit: number = 15,
+      sortingBy: string = 'createdAt',
+      orderBy: OrderBy = OrderBy.asc,
+    ) {
+      try {
+        const skip = (page - 1) * limit;
+  
+        const paymentsCount = await this.ormProvider.payment.count({
+          where: { LaboratoryId: id },
+        });
+  
+        const payments = await this.ormProvider.payment.findMany({
+          where: { LaboratoryId: id },
+          take: limit,
+          skip: skip,
+          orderBy: { [sortingBy]: orderBy },
+          include: {
+            createdBy: {
+              select: { name: true, id: true, email: true, position: true },
+            },
+            updatedBy: {
+              select: { name: true, id: true, email: true, position: true },
+            },
+            Laboratory: { select: { name: true } },
+          },
+        });
+  
+        return { payments: payments, totalCount: paymentsCount };
+      } catch (error) {
+        throw new NotFoundException(error);
+      }
+    }
+  
 }
