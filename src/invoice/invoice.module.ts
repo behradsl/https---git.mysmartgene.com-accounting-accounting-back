@@ -5,8 +5,9 @@ import { RegistryModule } from 'src/registry/registry.module';
 import { OrmProvider } from 'src/providers/orm.provider';
 
 @Module({
-  imports:[RegistryModule],
-  providers: [InvoiceService , OrmProvider],
-  controllers: [InvoiceController]
+  imports: [RegistryModule],
+  providers: [InvoiceService, OrmProvider],
+  controllers: [InvoiceController],
+  exports: [InvoiceService],
 })
 export class InvoiceModule {}

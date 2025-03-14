@@ -187,8 +187,7 @@ model Registry {
   description String? @db.Text
 
   productPriceUsd Decimal?
-  usdExchangeRate Decimal?
-  totalPriceRial  Decimal?
+  
 
   dataSampleReceived DateTime
 
@@ -243,20 +242,20 @@ model LaboratoryInvoice {
   Laboratory   Laboratory @relation(fields: [LaboratoryId], references: [id])
   LaboratoryId String
 
-  currency Currency
-
+  
   status InvoiceStatus @default(DRAFT)
 
   paymentDueDate DateTime?
 
-  paymentStatus PaymentStatus
+  paymentStatus PaymentStatus @default(UNPAID)
 
   notes String?
 
   Registries Registry[]
 
   totalUsdPrice  Decimal
-  totalRialPrice Decimal
+  usdExchangeRate Decimal
+  totalPriceRial  Decimal
 
   createdAt DateTime  @default(now())
   updatedAt DateTime?

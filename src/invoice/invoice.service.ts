@@ -13,6 +13,9 @@ import { RegistryService } from 'src/registry/registry.service';
 import { UserIdDto } from 'src/user/dtos/user.dto';
 import { OrderBy } from 'src/types/global-types';
 import { LaboratoryIdDto } from 'src/laboratory/dtos/laboratory.dto';
+import { Position } from '@prisma/client';
+
+import Big from 'big.js';
 
 @Injectable()
 export class InvoiceService {
@@ -32,11 +35,16 @@ export class InvoiceService {
         ids: registryIds,
       });
 
+      const totalRialPrice = new Big(totalPrices.totalUsdPrice).times(
+        new Big(invoiceInfo.usdExchangeRate),
+      );
+
       const invoice = await this.ormProvider.laboratoryInvoice.create({
         data: {
           ...invoiceInfo,
-          totalRialPrice: totalPrices.totalRialPrice,
+          totalPriceRial: totalRialPrice.toString(),
           totalUsdPrice: totalPrices.totalUsdPrice,
+          status: 'DRAFT',
           Laboratory: { connect: { id: laboratoryId } },
           createdBy: { connect: { id: userId.id } },
         },
@@ -57,18 +65,19 @@ export class InvoiceService {
     args: Partial<UpdateInvoiceDto>,
     { id }: InvoiceIdDto,
     userId: UserIdDto,
+    position: Position,
   ) {
     try {
       const existingInvoice =
         await this.ormProvider.laboratoryInvoice.findUnique({
-          where: { id: id },
+          where: { id },
         });
 
       if (!existingInvoice) {
         throw new NotFoundException('invoice not found!');
       }
 
-      if (existingInvoice.status != 'DRAFT') {
+      if (existingInvoice.status !== 'DRAFT' && position !== 'ADMIN') {
         throw new BadRequestException('invoice is already issued!');
       }
 
@@ -80,27 +89,42 @@ export class InvoiceService {
         ? await this.registryService.calculateTotalPrices({ ids: registryIds })
         : undefined;
 
+      const totalRialPrice = totalPrices
+        ? new Big(totalPrices.totalUsdPrice)
+            .times(new Big(existingInvoice.usdExchangeRate))
+            .toString()
+        : undefined;
+
+      const updatePayload: any = {
+        ...updateData,
+        updatedAt: new Date(),
+        updatedBy: { connect: { id: userId.id } },
+      };
+
+      if (laboratoryId) {
+        updatePayload.Laboratory = { connect: { id: laboratoryId } };
+      }
+      if (registryIds) {
+        updatePayload.Registries = { set: registryIds.map((id) => ({ id })) };
+      }
+      if (totalRialPrice) {
+        updatePayload.totalPriceRial = totalRialPrice;
+      }
+      if (totalPrices) {
+        updatePayload.totalUsdPrice = totalPrices.totalUsdPrice;
+      }
+
       const newInvoice = await this.ormProvider.laboratoryInvoice.update({
-        where: { id: id },
-        data: {
-          ...updateData,
-          Laboratory: laboratoryId
-            ? { connect: { id: laboratoryId } }
-            : undefined,
-          Registries: {
-            set: registryIds ? registryIds.map((id) => ({ id })) : undefined,
-          },
-          totalRialPrice: totalPrices ? totalPrices.totalRialPrice : undefined,
-          totalUsdPrice: totalPrices ? totalPrices.totalUsdPrice : undefined,
-          updatedAt: new Date(),
-          updatedBy: { connect: userId },
-        },
+        where: { id },
+        data: updatePayload,
       });
 
       return newInvoice;
     } catch (error) {
       console.error(error);
-      throw new BadRequestException(error);
+      throw new BadRequestException(
+        error?.message || 'An error occurred while updating the invoice.',
+      );
     }
   }
 
@@ -208,6 +232,35 @@ export class InvoiceService {
       });
 
       return issuedInvoice;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async invoiceCancellation({ id }: InvoiceIdDto, userId: string) {
+    try {
+      const invoice = await this.ormProvider.laboratoryInvoice.findUnique({
+        where: { id: id },
+      });
+
+      if (!invoice) {
+        throw new NotFoundException('invoice not found!');
+      }
+
+      if (invoice.status != 'CANCELLED') {
+        throw new BadRequestException('invoice is already Cancelled!');
+      }
+
+      const cancelledInvoice = await this.ormProvider.laboratoryInvoice.update({
+        where: { id: id },
+        data: {
+          status: 'CANCELLED',
+          updatedAt: new Date(),
+          updatedBy: { connect: { id: userId } },
+        },
+      });
+
+      return cancelledInvoice;
     } catch (error) {
       throw new BadRequestException(error);
     }

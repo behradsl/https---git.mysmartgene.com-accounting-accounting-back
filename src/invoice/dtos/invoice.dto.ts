@@ -40,16 +40,6 @@ export class CreateInvoiceDto {
   currency: Currency;
 
   @ApiProperty({
-    description: 'invoice status',
-    example: 'DRAFT',
-    required: false,
-    enum: InvoiceStatus,
-  })
-  @IsOptional()
-  @IsEnum(InvoiceStatus)
-  status?: InvoiceStatus;
-
-  @ApiProperty({
     description: 'invoice payment due date',
     example: '2025-02-01T00:00:00.000Z',
     required: false,
@@ -59,14 +49,12 @@ export class CreateInvoiceDto {
   paymentDueDate?: Date;
 
   @ApiProperty({
-    description: 'invoice payment status',
-    example: 'UNPAID',
-    required: true,
-    enum: PaymentStatus,
+    description: 'usd exchange rate',
+    example: '100000',
+    required: false,
   })
-  @IsOptional()
-  @IsEnum(PaymentStatus)
-  paymentStatus: PaymentStatus;
+  @IsString()
+  usdExchangeRate: string;
 
   @ApiProperty({
     description: 'invoice notes',
@@ -93,7 +81,6 @@ export class UpdateInvoiceDto {
   @IsISO8601()
   invoiceDate?: string;
 
-  
   @ApiProperty({
     description: 'invoice currency',
     example: 'DOLLAR',
@@ -102,16 +89,6 @@ export class UpdateInvoiceDto {
   })
   @IsEnum(Currency)
   currency?: Currency;
-
-  @ApiProperty({
-    description: 'invoice status',
-    example: 'DRAFT',
-    required: false,
-    enum: InvoiceStatus,
-  })
-  @IsOptional()
-  @IsEnum(InvoiceStatus)
-  status?: InvoiceStatus;
 
   @ApiProperty({
     description: 'invoice payment due date',
@@ -123,14 +100,12 @@ export class UpdateInvoiceDto {
   paymentDueDate?: Date;
 
   @ApiProperty({
-    description: 'invoice payment status',
-    example: 'UNPAID',
+    description: 'usd exchange rate',
+    example: '100000',
     required: false,
-    enum: PaymentStatus,
   })
-  @IsOptional()
-  @IsEnum(PaymentStatus)
-  paymentStatus?: PaymentStatus;
+  @IsString()
+  usdExchangeRate: string;
 
   @ApiProperty({
     description: 'invoice notes',

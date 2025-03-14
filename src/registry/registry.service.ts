@@ -42,8 +42,6 @@ export class RegistryService {
           urgentStatus: args.urgentStatus ?? false,
           sampleType: args.sampleType,
           productPriceUsd: args.productPriceUsd,
-          usdExchangeRate: args.usdExchangeRate,
-          totalPriceRial: args.totalPriceRial,
           description: args.description,
           dataSampleReceived: new Date(args.dataSampleReceived),
           sampleExtractionDate: args.sampleExtractionDate
@@ -120,8 +118,6 @@ export class RegistryService {
         kitType: args.kitType,
         urgentStatus: args.urgentStatus,
         productPriceUsd: args.productPriceUsd,
-        usdExchangeRate: args.usdExchangeRate,
-        totalPriceRial: args.totalPriceRial,
         description: args.description,
         costumerRelation: args.costumerRelationId
           ? { connect: { id: args.costumerRelationId } }
@@ -282,9 +278,7 @@ export class RegistryService {
       const registryNullPrice: string[] = [];
       registries.forEach((registry) => {
         if (
-          registry.totalPriceRial === null ||
-          registry.usdExchangeRate === null ||
-          registry.productPriceUsd === null
+            registry.productPriceUsd === null
         ) {
           registryNullPrice.push(registry.MotId);
         }
@@ -293,7 +287,7 @@ export class RegistryService {
 
       if (registryNullPrice.length > 0) {
         throw new BadRequestException(
-          `Registries with MOT ID(s) ${registryNullPrice.join(', ')} have empty prices.`,
+          `Registries with MOT ID(s) ${registryNullPrice.join(', ')} have empty price.`,
         );
       }
 
@@ -301,7 +295,7 @@ export class RegistryService {
         where: { id: { in: ids.ids } },
         _sum: {
           productPriceUsd: true,
-          totalPriceRial: true,
+          
         },
       });
 
@@ -310,13 +304,9 @@ export class RegistryService {
         (() => {
           throw new BadRequestException('Could not calculate total USD price');
         })();
-      const totalRialPrice =
-        totalPrices._sum.totalPriceRial ??
-        (() => {
-          throw new BadRequestException('Could not calculate total Rial price');
-        })();
+      
 
-      return { totalUsdPrice: totalUsdPrice, totalRialPrice: totalRialPrice };
+      return { totalUsdPrice: totalUsdPrice };
     } catch (error) {
       throw new BadRequestException(error);
     }

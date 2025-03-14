@@ -21,7 +21,6 @@ import {
   UpdateInvoiceDto,
 } from './dtos/invoice.dto';
 import { OrderBy, UserSessionType } from 'src/types/global-types';
-import { FieldVisibilityInterceptor } from 'src/common/FieldVisibility.interceptor';
 import { LaboratoryIdDto } from 'src/laboratory/dtos/laboratory.dto';
 
 @ApiTags('/invoice')
@@ -171,8 +170,9 @@ export class InvoiceController {
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;
+    const position = session.passport.user.position;
 
-    return this.invoiceService.update(args, invoiceId, { id: userId });
+    return this.invoiceService.update(args, invoiceId, { id: userId } , position);
   }
 
   @ApiOperation({
@@ -184,8 +184,20 @@ export class InvoiceController {
     @Param() args: InvoiceIdDto,
     @Session() session: UserSessionType,
   ) {
+    const userId = session.passport.user.id;
+    return this.invoiceService.invoiceIssuance(args, userId);
+  }  
 
-    const userId = session.passport.user.id
-    return this.invoiceService.invoiceIssuance(args , userId);
+  @ApiOperation({
+    description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
+  })
+  @Roles('ADMIN', 'FINANCE_MANAGER')
+  @Post('/cancellation/:id')
+  async invoiceCancellation(
+    @Param() args: InvoiceIdDto,
+    @Session() session: UserSessionType,
+  ) {
+    const userId = session.passport.user.id;
+    return this.invoiceService.invoiceCancellation(args, userId);
   }
 }

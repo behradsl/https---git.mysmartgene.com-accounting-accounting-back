@@ -71,19 +71,9 @@ export class CreateRegistryDto {
 
   @ApiProperty({ description: 'product price in usd ', example: '100000' })
   @IsString()
-  productPriceUsd: string;
+  productPriceUsd?: string;
 
-  @ApiProperty({ description: 'usd exchange to rial rate ', example: '950000' })
-  @IsString()
-  usdExchangeRate: string;
-
-  @ApiProperty({
-    description: 'total price in rial currency ',
-    example: '950000000',
-  })
-  @IsString()
-  totalPriceRial: string;
-
+  
   @ApiProperty({
     description: 'Date of receiving data sample',
     example: '2025-02-01T00:00:00.000Z',
