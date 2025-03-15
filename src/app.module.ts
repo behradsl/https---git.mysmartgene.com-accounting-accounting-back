@@ -7,6 +7,8 @@ import { APP_PIPE } from '@nestjs/core';
 import { InvoiceModule } from './invoice/invoice.module';
 import { PaymentModule } from './payment/payment.module';
 
+import { ScheduleModule } from '@nestjs/schedule';
+
 @Module({
   imports: [
     AuthModule,
@@ -15,6 +17,7 @@ import { PaymentModule } from './payment/payment.module';
     RegistryFieldAccessModule,
     InvoiceModule,
     PaymentModule,
+    ScheduleModule.forRoot()
   ],
   providers: [
     {

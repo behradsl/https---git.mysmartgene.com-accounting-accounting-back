@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Currency } from '@prisma/client';
 import {
-  IsDecimal,
   IsEnum,
   IsISO8601,
   IsOptional,

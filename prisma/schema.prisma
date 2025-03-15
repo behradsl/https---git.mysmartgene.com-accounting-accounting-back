@@ -106,10 +106,6 @@ model User {
   PaymentsCreatedBy Payment[] @relation(name: "payment-createdBy")
 
   PaymentsUpdatedBy Payment[] @relation(name: "payment-updatedBy")
-
-  SettlementCreatedBy Settlement[] @relation(name: "settlement-createdBy")
-
-  SettlementUpdatedBy Settlement[] @relation(name: "settlement-updatedBy")
 }
 
 model Laboratory {
@@ -140,8 +136,6 @@ model Laboratory {
   LaboratoryInvoices LaboratoryInvoice[]
 
   Payments Payment[]
-
-  Settlement Settlement[]
 }
 
 model LaboratoryFormalPaymentInfo {
@@ -187,7 +181,6 @@ model Registry {
   description String? @db.Text
 
   productPriceUsd Decimal?
-  
 
   dataSampleReceived DateTime
 
@@ -221,7 +214,7 @@ model Registry {
 
   final Boolean @default(false)
 
-  Invoice              LaboratoryInvoice? @relation(fields: [LaboratoryInvoiceId], references: [id])
+  Invoice             LaboratoryInvoice? @relation(fields: [LaboratoryInvoiceId], references: [id])
   LaboratoryInvoiceId String?
 }
 
@@ -242,7 +235,6 @@ model LaboratoryInvoice {
   Laboratory   Laboratory @relation(fields: [LaboratoryId], references: [id])
   LaboratoryId String
 
-  
   status InvoiceStatus @default(DRAFT)
 
   paymentDueDate DateTime?
@@ -253,9 +245,11 @@ model LaboratoryInvoice {
 
   Registries Registry[]
 
-  totalUsdPrice  Decimal
+  totalUsdPrice   Decimal
   usdExchangeRate Decimal
-  totalPriceRial  Decimal
+  totalPriceRial  Decimal  
+
+  outstandingAmount Decimal @default(0)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime?
@@ -296,29 +290,3 @@ model Payment {
   updatedById String?
 }
 
-model Settlement {
-  id String @id @unique @default(uuid())
-
-  Laboratory   Laboratory @relation(fields: [LaboratoryId], references: [id])
-  LaboratoryId String
-
-  totalInvoiceAmount Decimal
-  totalPaidAmount    Decimal
-
-  outStandingAmount Decimal
-
-  status LaboratorySettlementStatus
-
-  dueDate DateTime?
-
-  installmentPlan Json
-
-  createdAt DateTime
-  UpdatedAt DateTime?
-
-  createdBy   User   @relation(fields: [createdById], references: [id], name: "settlement-createdBy")
-  createdById String
-
-  updatedBy   User?   @relation(fields: [updatedById], references: [id], name: "settlement-updatedBy")
-  updatedById String?
-}

@@ -15,7 +15,7 @@ import { UserIdDto } from 'src/user/dtos/user.dto';
 import { InvoiceIdDto } from 'src/invoice/dtos/invoice.dto';
 
 import Big from 'big.js';
-import { PaymentStatus } from '@prisma/client';
+import { InvoiceStatus, PaymentStatus } from '@prisma/client';
 import { OrderBy } from 'src/types/global-types';
 
 @Injectable()
@@ -62,11 +62,18 @@ export class PaymentService {
 
       const invoicePaymentStatus: PaymentStatus =
         outstandingAmount > 0 ? 'PARTIALLY_PAID' : 'PAID';
+
+      const invoiceStatus: InvoiceStatus =
+        invoicePaymentStatus === 'PAID' ? 'PAID' : invoice.status;
       await this.ormProvider.payment.update({
         where: { id: payment.id },
         data: {
           LaboratoryInvoice: {
-            update: { paymentStatus: invoicePaymentStatus },
+            update: {
+              paymentStatus: invoicePaymentStatus,
+              outstandingAmount: outstandingAmount,
+              status: invoiceStatus,
+            },
           },
         },
       });
@@ -76,7 +83,11 @@ export class PaymentService {
     }
   }
 
-  async update(args: Partial<UpdatePaymentDto>, userId: UserIdDto , {id}:PaymentIdDto) {
+  async update(
+    args: Partial<UpdatePaymentDto>,
+    userId: UserIdDto,
+    { id }: PaymentIdDto,
+  ) {
     try {
       const { LaboratoryInvoiceId, ...paymentInfo } = args;
 
@@ -126,7 +137,10 @@ export class PaymentService {
         where: { id: payment.id },
         data: {
           LaboratoryInvoice: {
-            update: { paymentStatus: invoicePaymentStatus },
+            update: {
+              paymentStatus: invoicePaymentStatus,
+              outstandingAmount: outstandingAmount,
+            },
           },
         },
       });
@@ -198,41 +212,39 @@ export class PaymentService {
     }
   }
 
-
   async findAByLaboratory(
-      { id }: PaymentIdDto,
-      page: number = 1,
-      limit: number = 15,
-      sortingBy: string = 'createdAt',
-      orderBy: OrderBy = OrderBy.asc,
-    ) {
-      try {
-        const skip = (page - 1) * limit;
-  
-        const paymentsCount = await this.ormProvider.payment.count({
-          where: { LaboratoryId: id },
-        });
-  
-        const payments = await this.ormProvider.payment.findMany({
-          where: { LaboratoryId: id },
-          take: limit,
-          skip: skip,
-          orderBy: { [sortingBy]: orderBy },
-          include: {
-            createdBy: {
-              select: { name: true, id: true, email: true, position: true },
-            },
-            updatedBy: {
-              select: { name: true, id: true, email: true, position: true },
-            },
-            Laboratory: { select: { name: true } },
+    { id }: PaymentIdDto,
+    page: number = 1,
+    limit: number = 15,
+    sortingBy: string = 'createdAt',
+    orderBy: OrderBy = OrderBy.asc,
+  ) {
+    try {
+      const skip = (page - 1) * limit;
+
+      const paymentsCount = await this.ormProvider.payment.count({
+        where: { LaboratoryId: id },
+      });
+
+      const payments = await this.ormProvider.payment.findMany({
+        where: { LaboratoryId: id },
+        take: limit,
+        skip: skip,
+        orderBy: { [sortingBy]: orderBy },
+        include: {
+          createdBy: {
+            select: { name: true, id: true, email: true, position: true },
           },
-        });
-  
-        return { payments: payments, totalCount: paymentsCount };
-      } catch (error) {
-        throw new NotFoundException(error);
-      }
+          updatedBy: {
+            select: { name: true, id: true, email: true, position: true },
+          },
+          Laboratory: { select: { name: true } },
+        },
+      });
+
+      return { payments: payments, totalCount: paymentsCount };
+    } catch (error) {
+      throw new NotFoundException(error);
     }
-  
+  }
 }
