@@ -197,8 +197,6 @@ model Registry {
 
   sendSeries Int
 
-  settlementStatus SettlementStatus
-
   invoiceStatus InvoiceStatus?
 
   createdAt DateTime  @default(now())

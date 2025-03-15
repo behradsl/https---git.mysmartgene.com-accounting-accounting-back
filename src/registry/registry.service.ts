@@ -13,7 +13,7 @@ import {
   UpdateRegistryDto,
 } from './dtos/registry.dto';
 
-import { Position, Prisma } from '@prisma/client';
+import { InvoiceStatus, Position, Prisma } from '@prisma/client';
 import { OrderBy } from 'src/types/global-types';
 import { sampleStatusCalculate } from './utilities/sampleStatusCal.utilitiels';
 import { InvoiceIdDto } from 'src/invoice/dtos/invoice.dto';
@@ -66,7 +66,6 @@ export class RegistryService {
 
           sampleStatus: sampleStatus,
           sendSeries: args.sendSeries,
-          settlementStatus: 'PENDING',
 
           createdAt: new Date(),
           updatedAt: null,
@@ -277,9 +276,7 @@ export class RegistryService {
 
       const registryNullPrice: string[] = [];
       registries.forEach((registry) => {
-        if (
-            registry.productPriceUsd === null
-        ) {
+        if (registry.productPriceUsd === null) {
           registryNullPrice.push(registry.MotId);
         }
       });
@@ -295,7 +292,6 @@ export class RegistryService {
         where: { id: { in: ids.ids } },
         _sum: {
           productPriceUsd: true,
-          
         },
       });
 
@@ -304,7 +300,6 @@ export class RegistryService {
         (() => {
           throw new BadRequestException('Could not calculate total USD price');
         })();
-      
 
       return { totalUsdPrice: totalUsdPrice };
     } catch (error) {
@@ -318,12 +313,37 @@ export class RegistryService {
     invoiceStatus,
   }: RegistryAssignInvoiceDto) {
     try {
+      const registries = await this.ormProvider.registry.findMany({
+        where: { id: { in: ids } },
+      });
       await this.ormProvider.registry.updateMany({
         where: { id: { in: ids } },
         data: { LaboratoryInvoiceId: invoiceId, invoiceStatus: invoiceStatus },
       });
     } catch (error) {
       throw new BadRequestException(error);
+    }
+  }
+
+  async updateAssignedInvoices(
+    addedRegistryIds: BulkRegistryIds,
+    removedRegistryIds: BulkRegistryIds,
+    newInvoiceStatus: InvoiceStatus,
+  ) {
+    // Update invoiceStatus for added registries
+    if (addedRegistryIds.ids.length) {
+      await this.ormProvider.registry.updateMany({
+        where: { id: { in: addedRegistryIds.ids } },
+        data: { invoiceStatus: newInvoiceStatus },
+      });
+    }
+
+    // Reset invoiceStatus for removed registries
+    if (removedRegistryIds.ids.length) {
+      await this.ormProvider.registry.updateMany({
+        where: { id: { in: removedRegistryIds.ids } },
+        data: { invoiceStatus: null },
+      });
     }
   }
 

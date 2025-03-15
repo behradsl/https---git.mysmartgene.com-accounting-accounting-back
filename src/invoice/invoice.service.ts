@@ -73,22 +73,36 @@ export class InvoiceService {
       const existingInvoice =
         await this.ormProvider.laboratoryInvoice.findUnique({
           where: { id },
+          include: { Registries: { select: { id: true } } }, // Fetch current registry IDs
         });
 
       if (!existingInvoice) {
-        throw new NotFoundException('invoice not found!');
+        throw new NotFoundException('Invoice not found!');
       }
 
       if (existingInvoice.status !== 'DRAFT' && position !== 'ADMIN') {
-        throw new BadRequestException('invoice is already issued!');
+        throw new BadRequestException('Invoice is already issued!');
       }
 
       const { registryIds, ...updateData } = args;
-      const laboratoryId = registryIds
-        ? await this.registryService.checkLaboratory({ ids: registryIds })
+      const currentRegistryIds = existingInvoice.Registries.map((r) => r.id);
+
+      const newRegistryIds = registryIds || [];
+      const addedRegistryIds = newRegistryIds.filter(
+        (id) => !currentRegistryIds.includes(id),
+      );
+      const removedRegistryIds = currentRegistryIds.filter(
+        (id) => !newRegistryIds.includes(id),
+      );
+
+      const laboratoryId = addedRegistryIds.length
+        ? await this.registryService.checkLaboratory({ ids: addedRegistryIds })
         : undefined;
-      const totalPrices = registryIds
-        ? await this.registryService.calculateTotalPrices({ ids: registryIds })
+
+      const totalPrices = newRegistryIds.length
+        ? await this.registryService.calculateTotalPrices({
+            ids: newRegistryIds,
+          })
         : undefined;
 
       const totalRialPrice = totalPrices
@@ -121,6 +135,11 @@ export class InvoiceService {
         data: updatePayload,
       });
 
+      await this.registryService.updateAssignedInvoices(
+        { ids: addedRegistryIds },
+        { ids: removedRegistryIds },
+        newInvoice.status,
+      );
       return newInvoice;
     } catch (error) {
       console.error(error);
@@ -316,20 +335,25 @@ export class InvoiceService {
         throw new NotFoundException('invoice not found!');
       }
 
-      if (invoice.status != 'CANCELLED') {
+      if (invoice.status === 'CANCELLED') {
         throw new BadRequestException('invoice is already Cancelled!');
       }
 
-      const cancelledInvoice = await this.ormProvider.laboratoryInvoice.update({
-        where: { id: id },
-        data: {
-          status: 'CANCELLED',
-          updatedAt: new Date(),
-          updatedBy: { connect: { id: userId } },
-        },
-      });
+      if (invoice.paymentStatus === 'UNPAID') {
+        const cancelledInvoice =
+          await this.ormProvider.laboratoryInvoice.update({
+            where: { id: id },
+            data: {
+              status: 'CANCELLED',
+              updatedAt: new Date(),
+              updatedBy: { connect: { id: userId } },
+            },
+          });
 
-      return cancelledInvoice;
+        return cancelledInvoice;
+      }
+
+      throw new BadRequestException('invoice has payment records!');
     } catch (error) {
       throw new BadRequestException(error);
     }
