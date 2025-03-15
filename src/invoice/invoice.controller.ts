@@ -17,6 +17,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import {
   CreateInvoiceDto,
+  InvoiceFindManyDto,
   InvoiceIdDto,
   UpdateInvoiceDto,
 } from './dtos/invoice.dto';
@@ -95,7 +96,6 @@ export class InvoiceController {
     }
   }
 
-  
   @ApiOperation({
     description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
   })
@@ -124,9 +124,9 @@ export class InvoiceController {
     description: 'order of registry sorting (default: asd )',
   })
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Get('/find/Laboratory/:id')
-  async findByLaboratory(
-    @Param() args: LaboratoryIdDto,
+  @Post('/find/all/filtered')
+  async findAllFiltered(
+    @Body() args: InvoiceFindManyDto,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sortingBy') sortingBy?: string,
@@ -139,7 +139,7 @@ export class InvoiceController {
         throw new BadRequestException('Page number must be at least 1');
       if (limitNumber < 1)
         throw new BadRequestException('Limit must be at least 1');
-      return await this.invoiceService.findAByLaboratory(
+      return await this.invoiceService.findAllFiltered(
         args,
         pageNumber,
         limitNumber,
@@ -174,7 +174,12 @@ export class InvoiceController {
     const userId = session.passport.user.id;
     const position = session.passport.user.position;
 
-    return this.invoiceService.update(args, invoiceId, { id: userId } , position);
+    return this.invoiceService.update(
+      args,
+      invoiceId,
+      { id: userId },
+      position,
+    );
   }
 
   @ApiOperation({
@@ -188,7 +193,7 @@ export class InvoiceController {
   ) {
     const userId = session.passport.user.id;
     return this.invoiceService.invoiceIssuance(args, userId);
-  }  
+  }
 
   @ApiOperation({
     description: "roles :'ADMIN', 'FINANCE_MANAGER' ",

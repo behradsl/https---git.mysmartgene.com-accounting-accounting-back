@@ -6,6 +6,7 @@ import {
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
   CreatePaymentDto,
+  PaymentFindManyDto,
   PaymentIdDto,
   UpdatePaymentDto,
 } from './dtos/payment.dto';
@@ -161,7 +162,8 @@ export class PaymentService {
     }
   }
 
-  async findAll(
+  async findAllFiltered(
+    args: PaymentFindManyDto,
     page: number = 1,
     limit: number = 15,
     sortingBy: string = 'createdAt',
@@ -170,9 +172,26 @@ export class PaymentService {
     try {
       const skip = (page - 1) * limit;
 
-      const paymentsCount = await this.ormProvider.payment.count({});
+      const paymentsCount = await this.ormProvider.payment.count({
+        where: {
+          LaboratoryId: args.laboratoryId ? args.laboratoryId : undefined,
+          currency: args.currency ? args.currency : undefined,
+          paymentDate: {
+            lte: args.paymentDueDateRange?.end,
+            gte: args.paymentDueDateRange?.start,
+          },
+        },
+      });
 
       const payments = await this.ormProvider.payment.findMany({
+        where: {
+          LaboratoryId: args.laboratoryId ? args.laboratoryId : undefined,
+          currency: args.currency ? args.currency : undefined,
+          paymentDate: {
+            lte: args.paymentDueDateRange?.end,
+            gte: args.paymentDueDateRange?.start,
+          },
+        },
         take: limit,
         skip: skip,
         orderBy: { [sortingBy]: orderBy },
@@ -186,7 +205,38 @@ export class PaymentService {
           Laboratory: { select: { name: true } },
         },
       });
-      return { payments: payments, totalCount: paymentsCount };
+
+      const totalUsdPayment = await this.ormProvider.payment.aggregate({
+        where: {
+          LaboratoryId: args.laboratoryId ? args.laboratoryId : undefined,
+          currency: 'DOLLAR',
+          paymentDate: {
+            lte: args.paymentDueDateRange?.end,
+            gte: args.paymentDueDateRange?.start,
+          },
+        },
+
+        _sum: { amountPaid: true },
+      });
+
+      const totalRialPayment = await this.ormProvider.payment.aggregate({
+        where: {
+          LaboratoryId: args.laboratoryId ? args.laboratoryId : undefined,
+          currency: 'RIAL',
+          paymentDate: {
+            lte: args.paymentDueDateRange?.end,
+            gte: args.paymentDueDateRange?.start,
+          },
+        },
+
+        _sum: { amountPaid: true },
+      });
+      return {
+        payments: payments,
+        totalCount: paymentsCount,
+        totalUsdPayment: totalUsdPayment,
+        totalRialPayment: totalRialPayment,
+      };
     } catch (error) {
       throw new NotFoundException(error);
     }
@@ -209,42 +259,6 @@ export class PaymentService {
       };
     } catch (error) {
       throw new BadRequestException(error);
-    }
-  }
-
-  async findAByLaboratory(
-    { id }: PaymentIdDto,
-    page: number = 1,
-    limit: number = 15,
-    sortingBy: string = 'createdAt',
-    orderBy: OrderBy = OrderBy.asc,
-  ) {
-    try {
-      const skip = (page - 1) * limit;
-
-      const paymentsCount = await this.ormProvider.payment.count({
-        where: { LaboratoryId: id },
-      });
-
-      const payments = await this.ormProvider.payment.findMany({
-        where: { LaboratoryId: id },
-        take: limit,
-        skip: skip,
-        orderBy: { [sortingBy]: orderBy },
-        include: {
-          createdBy: {
-            select: { name: true, id: true, email: true, position: true },
-          },
-          updatedBy: {
-            select: { name: true, id: true, email: true, position: true },
-          },
-          Laboratory: { select: { name: true } },
-        },
-      });
-
-      return { payments: payments, totalCount: paymentsCount };
-    } catch (error) {
-      throw new NotFoundException(error);
     }
   }
 }

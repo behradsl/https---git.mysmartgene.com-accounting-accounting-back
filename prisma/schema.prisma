@@ -247,7 +247,7 @@ model LaboratoryInvoice {
 
   totalUsdPrice   Decimal
   usdExchangeRate Decimal
-  totalPriceRial  Decimal  
+  totalPriceRial  Decimal
 
   outstandingAmount Decimal @default(0)
 
@@ -289,4 +289,3 @@ model Payment {
   updatedBy   User?   @relation(fields: [updatedById], references: [id], name: "payment-updatedBy")
   updatedById String?
 }
-

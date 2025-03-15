@@ -14,7 +14,7 @@ import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
-import { CreatePaymentDto, PaymentIdDto } from './dtos/payment.dto';
+import { CreatePaymentDto, PaymentFindManyDto, PaymentIdDto } from './dtos/payment.dto';
 import { OrderBy, UserSessionType } from 'src/types/global-types';
 import { UpdateInvoiceDto } from 'src/invoice/dtos/invoice.dto';
 
@@ -43,12 +43,12 @@ export class PaymentController {
   @Roles('ADMIN', 'FINANCE_MANAGER')
   @Post('/update/:id')
   async update(
-    @Param() paymentId :PaymentIdDto,
+    @Param() paymentId: PaymentIdDto,
     @Body() args: UpdateInvoiceDto,
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;
-    return await this.paymentService.update(args, { id: userId } , paymentId);
+    return await this.paymentService.update(args, { id: userId }, paymentId);
   }
 
   @ApiOperation({
@@ -79,8 +79,9 @@ export class PaymentController {
     description: 'order of registry sorting (default: asd )',
   })
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Get('/find/all')
-  async findAll(
+  @Post('/find/all')
+  async findAllFiltered(
+    @Body() args: PaymentFindManyDto,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sortingBy') sortingBy?: string,
@@ -93,7 +94,8 @@ export class PaymentController {
         throw new BadRequestException('Page number must be at least 1');
       if (limitNumber < 1)
         throw new BadRequestException('Limit must be at least 1');
-      return await this.paymentService.findAll(
+      return await this.paymentService.findAllFiltered(
+        args,
         pageNumber,
         limitNumber,
         sortingBy,
@@ -105,61 +107,6 @@ export class PaymentController {
   }
 
   @ApiOperation({
-      description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
-    })
-    @ApiQuery({
-      name: 'page',
-      required: false,
-      example: 1,
-      description: 'Page number (default: 1)',
-    })
-    @ApiQuery({
-      name: 'limit',
-      required: false,
-      example: 15,
-      description: 'Number of records per page (default: 15)',
-    })
-    @ApiQuery({
-      name: 'sortingBy',
-      required: false,
-      example: 'createdAt',
-      description: 'fieldNAme registries would be sorted by (default: createdAt)',
-    })
-    @ApiQuery({
-      name: 'orderBy',
-      required: false,
-      example: OrderBy.asc,
-      description: 'order of registry sorting (default: asd )',
-    })
-    @Roles('ADMIN', 'FINANCE_MANAGER')
-    @Get('/find/Laboratory/:id')
-    async findByLaboratory(
-      @Param() args: PaymentIdDto,
-      @Query('page') page?: string,
-      @Query('limit') limit?: string,
-      @Query('sortingBy') sortingBy?: string,
-      @Query('orderBy') orderBy?: OrderBy,
-    ) {
-      try {
-        const pageNumber = page ? parseInt(page, 10) : 1;
-        const limitNumber = limit ? parseInt(limit, 10) : 15;
-        if (pageNumber < 1)
-          throw new BadRequestException('Page number must be at least 1');
-        if (limitNumber < 1)
-          throw new BadRequestException('Limit must be at least 1');
-        return await this.paymentService.findAByLaboratory(
-          args,
-          pageNumber,
-          limitNumber,
-          sortingBy,
-          orderBy,
-        );
-      } catch (error) {
-        throw new BadRequestException(error.message);
-      }
-    }
-
-  @ApiOperation({
     description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
   })
   @Roles('ADMIN', 'FINANCE_MANAGER')
@@ -167,6 +114,4 @@ export class PaymentController {
   async findOne(@Param() { id }: PaymentIdDto) {
     return await this.paymentService.findOne({ id });
   }
-
-
 }

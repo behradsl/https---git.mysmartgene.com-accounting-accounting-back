@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Currency } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
   IsEnum,
   IsISO8601,
   IsOptional,
   IsString,
   IsUUID,
+  ValidateNested,
 } from 'class-validator';
 
 export class PaymentIdDto {
@@ -65,7 +67,7 @@ export class CreatePaymentDto {
   @IsString()
   @IsOptional()
   notes?: string;
-}  
+}
 
 export class UpdatePaymentDto {
   @ApiProperty({
@@ -113,4 +115,43 @@ export class UpdatePaymentDto {
   @IsString()
   @IsOptional()
   notes?: string;
+}
+
+export class PaymentFindManyDto {
+  @ApiProperty({
+    description: 'laboratory id uuid',
+    example: '',
+    required: false,
+    type: 'string',
+  })
+  @IsUUID()
+  laboratoryId?: string;
+
+  @ApiProperty({
+    description: 'payment currency',
+    example: Currency.DOLLAR,
+    required: false,
+    enum: Currency,
+  })
+  @IsEnum(Currency)
+  currency?: Currency;
+
+  @ApiProperty({
+    description: 'payment due date range',
+    example: { start: '2025-03-01', end: '2025-03-31' },
+    required: false,
+  })
+  @ValidateNested()
+  @Type(() => DateRangeDto)
+  paymentDueDateRange?: DateRangeDto;
+}
+
+class DateRangeDto {
+  @ApiProperty({ description: 'Start date', example: '2025-03-01' })
+  @IsISO8601()
+  start: string;
+
+  @ApiProperty({ description: 'End date', example: '2025-03-31' })
+  @IsISO8601()
+  end: string;
 }

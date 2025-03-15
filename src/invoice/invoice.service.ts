@@ -6,6 +6,7 @@ import {
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
   CreateInvoiceDto,
+  InvoiceFindManyDto,
   InvoiceIdDto,
   UpdateInvoiceDto,
 } from './dtos/invoice.dto';
@@ -16,6 +17,7 @@ import { LaboratoryIdDto } from 'src/laboratory/dtos/laboratory.dto';
 import { Position } from '@prisma/client';
 
 import Big from 'big.js';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class InvoiceService {
@@ -172,8 +174,8 @@ export class InvoiceService {
     }
   }
 
-  async findAByLaboratory(
-    { id }: LaboratoryIdDto,
+  async findAllFiltered(
+    args: InvoiceFindManyDto,
     page: number = 1,
     limit: number = 15,
     sortingBy: string = 'createdAt',
@@ -182,12 +184,21 @@ export class InvoiceService {
     try {
       const skip = (page - 1) * limit;
 
+      const filters = {
+        LaboratoryId: args.laboratoryId ? args.laboratoryId : undefined,
+        status: args.status,
+        paymentDueDate: {
+          lte: args.paymentDueDateRange?.end,
+          gte: args.paymentDueDateRange?.start,
+        },
+      };
+
       const invoicesCount = await this.ormProvider.laboratoryInvoice.count({
-        where: { LaboratoryId: id },
+        where: filters,
       });
 
       const invoices = await this.ormProvider.laboratoryInvoice.findMany({
-        where: { LaboratoryId: id },
+        where: filters,
         take: limit,
         skip: skip,
         orderBy: { [sortingBy]: orderBy },
@@ -202,7 +213,65 @@ export class InvoiceService {
         },
       });
 
-      return { invoices: invoices, totalCount: invoicesCount };
+      if (args.status === 'CANCELLED' || args.status === 'DRAFT') {
+        return { invoices: invoices, totalCount: invoicesCount };
+      }
+
+      const invoicesByStatus = await this.ormProvider.laboratoryInvoice.groupBy(
+        {
+          by: ['paymentStatus'],
+          where: filters,
+          _count: true,
+        },
+      );
+
+      const paidCount =
+        invoicesByStatus.find((i) => i.paymentStatus === 'PAID')?._count || 0;
+      const unpaidCount =
+        invoicesByStatus.find((i) => i.paymentStatus === 'UNPAID')?._count || 0;
+      const partiallyPaidCount =
+        invoicesByStatus.find((i) => i.paymentStatus === 'PARTIALLY_PAID')
+          ?._count || 0;
+
+      const issuedInvoicesAmount =
+        await this.ormProvider.laboratoryInvoice.aggregate({
+          where: {
+            LaboratoryId: args.laboratoryId ? args.laboratoryId : undefined,
+            status: args.status,
+            paymentDueDate: {
+              lte: args.paymentDueDateRange?.end,
+              gte: args.paymentDueDateRange?.start,
+            },
+          },
+          _sum: {
+            totalUsdPrice: true,
+            totalPriceRial: true,
+            outstandingAmount: true,
+          },
+        });
+
+      return {
+        invoices: invoices,
+        totalCount: invoicesCount,
+        totalUsdPrice: issuedInvoicesAmount._sum.totalUsdPrice,
+        totalPriceRial: issuedInvoicesAmount._sum.totalPriceRial,
+        outstandingAmount: issuedInvoicesAmount._sum.outstandingAmount,
+        paidCount: paidCount,
+        unpaidCount: unpaidCount,
+        partiallyPaidCount: partiallyPaidCount,
+        paymentPercentage:
+          issuedInvoicesAmount._sum.totalUsdPrice &&
+          issuedInvoicesAmount._sum.outstandingAmount
+            ? new Big(1)
+                .minus(
+                  new Big(issuedInvoicesAmount._sum.outstandingAmount).div(
+                    issuedInvoicesAmount._sum.totalUsdPrice,
+                  ),
+                )
+                .times(100)
+                .toFixed(2)
+            : null,
+      };
     } catch (error) {
       throw new NotFoundException(error);
     }
@@ -264,5 +333,16 @@ export class InvoiceService {
     } catch (error) {
       throw new BadRequestException(error);
     }
+  }
+
+  @Cron('0 0 * * *')
+  async markOverdueInvoices() {
+    await this.ormProvider.laboratoryInvoice.updateMany({
+      where: {
+        paymentDueDate: { not: null, lt: new Date() },
+        status: 'ISSUED',
+      },
+      data: { status: 'OVERDUE' },
+    });
   }
 }
