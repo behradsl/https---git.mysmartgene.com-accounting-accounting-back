@@ -105,7 +105,6 @@ export class ImportRegistryService {
           dataToImport.push({
             laboratoryId: laboratory.id,
             sampleStatus: sampleStatus,
-            settlementStatus: 'PENDING',
             userIdRegistryCreatedBy: userId,
             costumerRelationId: userCostumerRelation?.id,
 

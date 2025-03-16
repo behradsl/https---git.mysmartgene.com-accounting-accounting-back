@@ -117,6 +117,17 @@ export class UpdatePaymentDto {
   notes?: string;
 }
 
+
+class DateRangeDto {
+  @ApiProperty({ description: 'Start date', example: '2025-03-01' })
+  @IsISO8601()
+  start: string;
+
+  @ApiProperty({ description: 'End date', example: '2025-03-31' })
+  @IsISO8601()
+  end: string;
+}
+
 export class PaymentFindManyDto {
   @ApiProperty({
     description: 'laboratory id uuid',
@@ -146,12 +157,3 @@ export class PaymentFindManyDto {
   paymentDueDateRange?: DateRangeDto;
 }
 
-class DateRangeDto {
-  @ApiProperty({ description: 'Start date', example: '2025-03-01' })
-  @IsISO8601()
-  start: string;
-
-  @ApiProperty({ description: 'End date', example: '2025-03-31' })
-  @IsISO8601()
-  end: string;
-}

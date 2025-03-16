@@ -165,9 +165,7 @@ export class RegistryPreviewService {
             serviceType: args.serviceType,
             kitType: args.kitType,
             urgentStatus: args.urgentStatus,
-            productPriceUsd: args.productPriceUsd,
-            usdExchangeRate: args.usdExchangeRate,
-            totalPriceRial: args.totalPriceRial,
+            productPriceUsd:args.productPriceUsd,
             description: args.description,
             costumerRelation: args.costumerRelationId
               ? { connect: { id: args.costumerRelationId } }
