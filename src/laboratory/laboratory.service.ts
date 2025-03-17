@@ -46,7 +46,7 @@ export class LaboratoryService {
 
   async laboratoryFormalPaymentInfoFind({ id }: LaboratoryIdDto) {
     try {
-      const FormalPaymentInfo = this.ormProvider.laboratory.findUnique({
+      const FormalPaymentInfo = await this.ormProvider.laboratory.findUnique({
         where: { id: id },
         select: { LaboratoryFormalPaymentInfo: true, name: true },
       });
@@ -130,10 +130,12 @@ export class LaboratoryService {
 
   async findOne(id: string) {
     try {
-      return await this.ormProvider.laboratory.findUnique({
+      const lab = await this.ormProvider.laboratory.findUnique({
         where: { id },
         select: this.getLaboratorySelectFields(),
       });
+
+      return lab
     } catch (error) {
       throw new BadRequestException(error);
     }

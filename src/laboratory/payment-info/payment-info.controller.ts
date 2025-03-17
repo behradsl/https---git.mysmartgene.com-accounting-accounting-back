@@ -15,10 +15,7 @@ import {
 export class PaymentInfoController {
   constructor(private readonly laboratoryService: LaboratoryService) {}
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Get('/:id')
-  async LaboratoryFormalPaymentInfoFind(@Param('id') id: string) {
-    return await this.laboratoryService.laboratoryFormalPaymentInfoFind({ id });
-  }
+  
 
   @Roles('ADMIN', 'FINANCE_MANAGER')
   @Post('/create')
@@ -30,6 +27,14 @@ export class PaymentInfoController {
   @Post('/Update')
   async updateFormalPaymentInfo(@Body() args: UpdateFormalPaymentInfoDto) {
     return await this.laboratoryService.updateFormalPaymentInfo(args);
+  }
+
+  @Get('/:id')
+  async LaboratoryFormalPaymentInfoFind(@Param('id') id: string) {
+    
+    const labInfo = await  this.laboratoryService.laboratoryFormalPaymentInfoFind({ id });
+    return labInfo;
+   
   }
 
   
