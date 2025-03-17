@@ -32,8 +32,7 @@ export class ImportRegistryService {
         'وضعیت اضطراری': 'urgentStatus',
         توضیحات: 'description',
         'قیمت محصول به دلار': 'productPriceUsd',
-        'نرخ دلار': 'usdExchangeRate',
-        'قیمت کل به ریال': 'totalPriceRial',
+
         'تاریخ رسیدن نمونه': 'dataSampleReceived',
         'تاریخ استخراج نمونه': 'sampleExtractionDate',
         'تاریخ ارسال به کره': 'dataSentToKorea',
