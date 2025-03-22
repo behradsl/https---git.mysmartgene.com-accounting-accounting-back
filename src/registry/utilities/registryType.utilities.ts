@@ -1,3 +1,4 @@
+import { KitType, ServiceType } from '@prisma/client';
 import { RegistryType } from 'src/types/global-types';
 
 export function checkRequiredProps(data, index: number) {
@@ -34,20 +35,38 @@ function parseDate(dateString: string | number | Date): Date | null {
   return null;
 }
 
-export function rawDataToRegistryType(rawData): RegistryType[] {
+export function isValidEnumValue<T extends Record<string, string>>(
+  enumObj: T,
+  value: any,
+): boolean {
+  return Object.values(enumObj).includes(value);
+}
+
+export function rawDataToRegistryType(
+  rawData,
+  
+): RegistryType[] {
   return rawData.map((data: RegistryType, index: number) => {
     const missedRequiredProps = checkRequiredProps(data, index);
 
-    for (const missedRequiredProp of missedRequiredProps) {
+    if (missedRequiredProps.length > 0) {
       throw new Error(
-        `there is no ${missedRequiredProp} in row ${index}`,
+        `Missing required fields in row ${index}: ${missedRequiredProps.join(', ')}`,
       );
     }
 
-    
+    if (!isValidEnumValue(ServiceType, data.serviceType)) {
+      throw new Error(
+        `Invalid serviceType "${data.serviceType}" in row ${index}`,
+      );
+    }
+
+    if (!isValidEnumValue(KitType, data.kitType)) {
+      throw new Error(`Invalid kitType "${data.kitType}" in row ${index}`);
+    }
 
     return {
-      ...data
+      ...data,
     };
   });
 }

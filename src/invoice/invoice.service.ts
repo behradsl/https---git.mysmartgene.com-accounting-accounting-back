@@ -13,7 +13,6 @@ import {
 import { RegistryService } from 'src/registry/registry.service';
 import { UserIdDto } from 'src/user/dtos/user.dto';
 import { OrderBy } from 'src/types/global-types';
-import { LaboratoryIdDto } from 'src/laboratory/dtos/laboratory.dto';
 import { Position } from '@prisma/client';
 
 import Big from 'big.js';
@@ -29,25 +28,24 @@ export class InvoiceService {
   async create(args: CreateInvoiceDto, userId: UserIdDto) {
     try {
       const { registryIds, ...invoiceInfo } = args;
-      const laboratoryId = await this.registryService.checkLaboratory({
+
+      const registriesInfo = await this.registryService.registriesPreChecks({
         ids: registryIds,
       });
 
-      const totalPrices = await this.registryService.calculateTotalPrices({
-        ids: registryIds,
-      });
-
-      const totalRialPrice = new Big(totalPrices.totalUsdPrice).times(
+      const totalRialPrice = new Big(registriesInfo.totalUsdPrice).times(
         new Big(invoiceInfo.usdExchangeRate),
       );
 
       const invoice = await this.ormProvider.laboratoryInvoice.create({
         data: {
           ...invoiceInfo,
+
           totalPriceRial: totalRialPrice.toString(),
-          totalUsdPrice: totalPrices.totalUsdPrice,
+          totalUsdPrice: registriesInfo.totalUsdPrice,
+          outstandingAmount: registriesInfo.totalUsdPrice,
           status: 'DRAFT',
-          Laboratory: { connect: { id: laboratoryId } },
+          Laboratory: { connect: { id: registriesInfo.laboratoryId } },
           createdBy: { connect: { id: userId.id } },
         },
       });
@@ -95,21 +93,22 @@ export class InvoiceService {
         (id) => !newRegistryIds.includes(id),
       );
 
-      const laboratoryId = addedRegistryIds.length
-        ? await this.registryService.checkLaboratory({ ids: addedRegistryIds })
-        : undefined;
-
-      const totalPrices = newRegistryIds.length
-        ? await this.registryService.calculateTotalPrices({
+      const newRegistriesInfo = newRegistryIds.length
+        ? await this.registryService.registriesPreChecks({
             ids: newRegistryIds,
           })
         : undefined;
+      const usdExchangeRate = updateData.usdExchangeRate
+        ? updateData.usdExchangeRate
+        : existingInvoice.usdExchangeRate;
 
-      const totalRialPrice = totalPrices
-        ? new Big(totalPrices.totalUsdPrice)
-            .times(new Big(existingInvoice.usdExchangeRate))
+      const totalRialPrice = newRegistriesInfo?.totalUsdPrice
+        ? new Big(newRegistriesInfo.totalUsdPrice)
+            .times(new Big(usdExchangeRate))
             .toString()
-        : undefined;
+        : new Big(existingInvoice.totalUsdPrice)
+            .times(new Big(usdExchangeRate))
+            .toString();
 
       const updatePayload: any = {
         ...updateData,
@@ -117,8 +116,10 @@ export class InvoiceService {
         updatedBy: { connect: { id: userId.id } },
       };
 
-      if (laboratoryId) {
-        updatePayload.Laboratory = { connect: { id: laboratoryId } };
+      if (newRegistriesInfo?.laboratoryId) {
+        updatePayload.Laboratory = {
+          connect: { id: newRegistriesInfo.laboratoryId },
+        };
       }
       if (registryIds) {
         updatePayload.Registries = { set: registryIds.map((id) => ({ id })) };
@@ -126,8 +127,8 @@ export class InvoiceService {
       if (totalRialPrice) {
         updatePayload.totalPriceRial = totalRialPrice;
       }
-      if (totalPrices) {
-        updatePayload.totalUsdPrice = totalPrices.totalUsdPrice;
+      if (newRegistriesInfo) {
+        updatePayload.totalUsdPrice = newRegistriesInfo.totalUsdPrice;
       }
 
       const newInvoice = await this.ormProvider.laboratoryInvoice.update({

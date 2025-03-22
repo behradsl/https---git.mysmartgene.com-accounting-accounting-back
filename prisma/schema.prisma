@@ -78,6 +78,31 @@ enum LaboratorySettlementStatus {
   OVERDUE
 }
 
+enum ServiceType {
+  WES100
+  WES200
+  WES300
+  BRCA_1_2
+  CANCER_PANEL_16_GENES
+  CANCER_PANEL_69_GENES
+  CANCER_PANEL_88_GENES
+  CANCER_PANEL_171_GENES
+  CANCER_PANEL_554_GENES
+  S16S_RNA
+  RNA_SEQ_6G
+  RNA_SEQ_12G
+  RNA_SEQ_9G
+  WHOLE_GENOME_30X
+  WHOLE_GENOME_10X
+  WHOLE_GENOME_1X
+}
+
+enum KitType {
+  AGILENT_SURESELECT_V7
+  AGILENT_SURESELECT_V8
+  TWIST2
+}
+
 model User {
   id           String    @id @unique @default(uuid())
   name         String    @db.VarChar(255)
@@ -171,8 +196,8 @@ model Registry {
   costumerRelation   User?   @relation(name: "costumer-relation", fields: [costumerRelationId], references: [id])
   costumerRelationId String?
 
-  serviceType String @db.TinyText
-  kitType     String @db.TinyText
+  serviceType ServiceType
+  kitType     KitType
 
   sampleType SampleType
 
@@ -247,7 +272,7 @@ model LaboratoryInvoice {
   usdExchangeRate Decimal
   totalPriceRial  Decimal
 
-  outstandingAmount Decimal @default(0)
+  outstandingAmount Decimal
 
   createdAt DateTime  @default(now())
   updatedAt DateTime?

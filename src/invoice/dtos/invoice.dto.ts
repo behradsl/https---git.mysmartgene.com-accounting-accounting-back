@@ -32,15 +32,7 @@ export class CreateInvoiceDto {
   @IsISO8601()
   invoiceDate?: string;
 
-  @ApiProperty({
-    description: 'invoice currency',
-    example: 'DOLLAR',
-    required: true,
-    enum: Currency,
-  })
-  @IsEnum(Currency)
-  currency: Currency;
-
+  
   @ApiProperty({
     description: 'invoice payment due date',
     example: '2025-02-01T00:00:00.000Z',
@@ -83,15 +75,7 @@ export class UpdateInvoiceDto {
   @IsISO8601()
   invoiceDate?: string;
 
-  @ApiProperty({
-    description: 'invoice currency',
-    example: 'DOLLAR',
-    required: false,
-    enum: Currency,
-  })
-  @IsEnum(Currency)
-  currency?: Currency;
-
+  
   @ApiProperty({
     description: 'invoice payment due date',
     example: '2025-02-01T00:00:00.000Z',

@@ -131,10 +131,9 @@ export class RegistryExportService {
 
     registries.forEach((registry) => {
       const rowData = headerRow.map((field) => {
-              
         //if (!(field in registry)) return 'N/A';
         const value = registry[field];
-            
+
         return field === 'Laboratory'
           ? value.name
           : value instanceof Date
@@ -173,8 +172,6 @@ const PersianRegistryFieldNames = {
   urgentStatus: 'وضعیت اضطراری',
   description: 'توضیحات',
   productPriceUsd: 'قیمت محصول به دلار',
-  usdExchangeRate: 'نرخ دلار',
-  totalPriceRial: 'قیمت کل به ریال',
   dataSampleReceived: 'تاریخ رسیدن نمونه',
   sampleExtractionDate: 'تاریخ استخراج نمونه',
   dataSentToKorea: 'تاریخ ارسال به کره',

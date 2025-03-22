@@ -40,7 +40,7 @@ export class InvoiceController {
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;
-    return await this.invoiceService.create(args, { id: userId });
+    return  this.invoiceService.create(args, { id: userId });
   }
 
   @ApiOperation({

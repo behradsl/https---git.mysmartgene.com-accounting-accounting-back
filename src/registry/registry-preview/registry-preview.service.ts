@@ -71,7 +71,7 @@ export class RegistryPreviewService {
   ) {
     try {
       const registriesCount = await this.ormProvider.registry.count({
-        where: { final: true },
+        where: { final: false },
       });
       const skip = (page - 1) * limit;
       if (position === 'ADMIN') {

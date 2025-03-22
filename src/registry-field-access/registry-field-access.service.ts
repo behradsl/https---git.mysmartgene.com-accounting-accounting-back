@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
+  CreateRegistryFieldAccessArrayDto,
   CreateRegistryFieldAccessDto,
   RegistryFieldAccessFindByPositionNameDto,
 } from './dtos/registry-field-access.dto';
@@ -37,10 +38,10 @@ export class RegistryFieldAccessService {
     }
   }
 
-  async upsertMany(data: CreateRegistryFieldAccessDto[]) {
+  async upsertMany(data: CreateRegistryFieldAccessArrayDto) {
     try {
       return await this.ormProvider.$transaction(
-        data.map(({ access, position, registryField }) =>
+        data.registryFieldAccesses.map(({ access, position, registryField }) =>
           this.ormProvider.registryFieldAccess.upsert({
             where: {
               position_registryField: {
@@ -61,15 +62,13 @@ export class RegistryFieldAccessService {
   async findByPosition(args: RegistryFieldAccessFindByPositionNameDto) {
     try {
       const fieldAccess = await this.ormProvider.registryFieldAccess.findMany({
-        where:{position:args.position}
-      })
-      return fieldAccess
+        where: { position: args.position },
+      });
+      return fieldAccess;
     } catch (error) {
       throw new BadRequestException(error);
     }
   }
-
-  
 
   async findAll() {
     try {

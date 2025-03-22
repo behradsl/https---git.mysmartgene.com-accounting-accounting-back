@@ -1,8 +1,10 @@
 import {
   InvoiceStatus,
+  KitType,
   Position,
   SampleStatus,
   SampleType,
+  ServiceType,
   SettlementStatus,
 } from '@prisma/client';
 
@@ -24,14 +26,12 @@ export interface RegistryType {
   personName: string;
   Laboratory: string;
   costumerRelation?: string;
-  serviceType: string;
-  kitType: string;
+  serviceType: ServiceType;
+  kitType: KitType;
   sampleType: SampleType;
   urgentStatus?: boolean;
   description?: string;
   productPriceUsd: string;
-  usdExchangeRate: string;
-  totalPriceRial: string;
   dataSampleReceived: Date;
   sampleExtractionDate?: Date;
   dataSentToKorea?: Date;

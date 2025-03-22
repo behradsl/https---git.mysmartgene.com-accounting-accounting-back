@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AccessType, Position } from '@prisma/client';
-import { IsArray, IsEnum, IsString, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsEnum, IsString, IsUUID, ValidateNested } from 'class-validator';
 
 export class RegistryFieldAccessIdDto {
   @ApiProperty({ example: '' })
@@ -26,6 +27,14 @@ export class CreateRegistryFieldAccessDto {
   @ApiProperty({ example: 'VISIBLE' })
   @IsEnum(AccessType)
   access: AccessType;
+}
+
+export class CreateRegistryFieldAccessArrayDto {
+  @ApiProperty({ type: [CreateRegistryFieldAccessDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateRegistryFieldAccessDto)
+  registryFieldAccesses: CreateRegistryFieldAccessDto[];
 }
 
 export class UpdateRegistryFieldAccessDto extends RegistryFieldAccessIdDto {

@@ -28,28 +28,28 @@ import {
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @ApiOperation({description:"roles :ADMIN "})
+  @ApiOperation({ description: 'roles :ADMIN ' })
   @Roles('ADMIN')
   @Post('/create')
   async create(@Body() args: CreateUserDto) {
     return this.userService.createUser(args);
   }
 
-  @ApiOperation({description:"roles :ADMIN "})
+  @ApiOperation({ description: 'roles :ADMIN ' })
   @Roles('ADMIN')
   @Post('/update')
   async update(@Body() args: UpdateUserDto) {
     return this.userService.UpdateUser(args);
   }
 
-  @ApiOperation({description:"roles :ADMIN "})
+  @ApiOperation({ description: 'roles :ADMIN ' })
   @Roles('ADMIN')
   @Post('/delete')
   async deleteUser(@Body('id') id: string) {
     return this.userService.deleteUser({ id });
   }
 
-  @ApiOperation({description:"roles :ADMIN "})
+  @ApiOperation({ description: 'roles :ADMIN ' })
   @ApiQuery({
     name: 'page',
     required: false,
@@ -75,7 +75,12 @@ export class UserController {
     return this.userService.findMany(pageNumber, limitNumber);
   }
 
-  @ApiOperation({description:"roles :ADMIN "})
+  @Get('/names')
+  async findAllNames() {
+    return this.userService.findAllNames();
+  }
+
+  @ApiOperation({ description: 'roles :ADMIN ' })
   @Roles('ADMIN')
   @Get('/:id')
   async findOne(@Param('id') id: string) {

@@ -13,7 +13,13 @@ import {
   UpdateRegistryDto,
 } from './dtos/registry.dto';
 
-import { InvoiceStatus, Position, Prisma } from '@prisma/client';
+import {
+  InvoiceStatus,
+  KitType,
+  Position,
+  Prisma,
+  ServiceType,
+} from '@prisma/client';
 import { OrderBy } from 'src/types/global-types';
 import { sampleStatusCalculate } from './utilities/sampleStatusCal.utilitiels';
 import { InvoiceIdDto } from 'src/invoice/dtos/invoice.dto';
@@ -25,6 +31,13 @@ export class RegistryService {
 
   async createRegistry(args: CreateRegistryDto, userId: string) {
     try {
+      const existingRegistry = await this.ormProvider.registry.findUnique({
+        where: { MotId: args.MotId },
+      });
+
+      if (existingRegistry) {
+        throw new BadRequestException(`MotId "${args.MotId}" already exists.`);
+      }
       const sampleStatus = sampleStatusCalculate(
         args.dataSampleReceived,
         args.sampleExtractionDate,
@@ -265,48 +278,6 @@ export class RegistryService {
     }
   }
 
-  async calculateTotalPrices(ids: BulkRegistryIds) {
-    try {
-      const registries = await this.ormProvider.registry.findMany({
-        where: {
-          id: { in: ids.ids },
-        },
-      });
-      console.log(registries);
-
-      const registryNullPrice: string[] = [];
-      registries.forEach((registry) => {
-        if (registry.productPriceUsd === null) {
-          registryNullPrice.push(registry.MotId);
-        }
-      });
-      console.log(registryNullPrice);
-
-      if (registryNullPrice.length > 0) {
-        throw new BadRequestException(
-          `Registries with MOT ID(s) ${registryNullPrice.join(', ')} have empty price.`,
-        );
-      }
-
-      const totalPrices = await this.ormProvider.registry.aggregate({
-        where: { id: { in: ids.ids } },
-        _sum: {
-          productPriceUsd: true,
-        },
-      });
-
-      const totalUsdPrice =
-        totalPrices._sum.productPriceUsd ??
-        (() => {
-          throw new BadRequestException('Could not calculate total USD price');
-        })();
-
-      return { totalUsdPrice: totalUsdPrice };
-    } catch (error) {
-      throw new BadRequestException(error);
-    }
-  }
-
   async assignInvoice({
     ids,
     invoiceId,
@@ -330,7 +301,6 @@ export class RegistryService {
     removedRegistryIds: BulkRegistryIds,
     newInvoiceStatus: InvoiceStatus,
   ) {
-    // Update invoiceStatus for added registries
     if (addedRegistryIds.ids.length) {
       await this.ormProvider.registry.updateMany({
         where: { id: { in: addedRegistryIds.ids } },
@@ -338,7 +308,6 @@ export class RegistryService {
       });
     }
 
-    // Reset invoiceStatus for removed registries
     if (removedRegistryIds.ids.length) {
       await this.ormProvider.registry.updateMany({
         where: { id: { in: removedRegistryIds.ids } },
@@ -351,7 +320,7 @@ export class RegistryService {
     try {
       const registries = await this.ormProvider.registry.findMany({
         where: { id: { in: args.ids } },
-        include: { Laboratory: true },
+        include: { Laboratory: true, Invoice: true },
       });
 
       return registries;
@@ -432,27 +401,72 @@ export class RegistryService {
     }
   }
 
-  async checkLaboratory(args: BulkRegistryIds) {
-    try {
-      const registries = await this.findManyById(args);
+  async registriesPreChecks(args: BulkRegistryIds) {
+    const registries = await this.findManyById(args);
 
-      if (registries.length === 0) {
-        throw new BadRequestException('No registries found.');
-      }
+    if (registries.length === 0) {
+      throw new BadRequestException('No registries found.');
+    }
 
-      const laboratoryIds = new Set(
-        registries.map((registry) => registry.Laboratory?.id),
-      );
+    const laboratoryIds: Set<string> = new Set();
+    const registryNullPrice: string[] = [];
 
-      if (laboratoryIds.size > 1) {
+    for (const registry of registries) {
+      if (!registry.final) {
         throw new BadRequestException(
-          'All registries must belong to the same Laboratory.',
+          `Registry with MOT ID ${registry.MotId} is not final yet!`,
         );
       }
 
-      return [...laboratoryIds][0];
-    } catch (error) {
-      throw new BadRequestException(error);
+      if (registry.LaboratoryInvoiceId != null) {
+        throw new BadRequestException(
+          `Registry with MOT ID ${registry.MotId} already has an invoice with number ${registry.Invoice?.invoiceNumber}!`,
+        );
+      }
+
+      laboratoryIds.add(registry.Laboratory.id);
+
+      if (registry.productPriceUsd === null) {
+        registryNullPrice.push(registry.MotId);
+      }
     }
+
+    if (laboratoryIds.size > 1) {
+      throw new BadRequestException(
+        'All registries must belong to the same Laboratory.',
+      );
+    }
+
+    if (registryNullPrice.length > 0) {
+      throw new BadRequestException(
+        `Registries with MOT ID(s) ${registryNullPrice.join(', ')} have empty price.`,
+      );
+    }
+
+    const totalPrices = await this.ormProvider.registry.aggregate({
+      where: { id: { in: args.ids } },
+      _sum: {
+        productPriceUsd: true,
+      },
+    });
+
+    const totalUsdPrice =
+      totalPrices._sum.productPriceUsd ??
+      (() => {
+        throw new BadRequestException('Could not calculate total USD price');
+      })();
+
+    return {
+      totalUsdPrice: totalUsdPrice,
+      laboratoryId: [...laboratoryIds][0],
+    };
+  }
+
+  serviceTypes() {
+    return Object.values(ServiceType);
+  }
+
+  kitTypes() {
+    return Object.values(KitType);
   }
 }

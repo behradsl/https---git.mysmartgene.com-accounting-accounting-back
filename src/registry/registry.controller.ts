@@ -125,6 +125,16 @@ export class RegistryController {
     }
   }
 
+  @Get('/serviceTypes')
+  serviceTypes() {
+    return this.registryService.serviceTypes();
+  }
+
+  @Get('/kitTypes')
+  kitTypes() {
+    return this.registryService.kitTypes();
+  }
+
   @ApiOperation({
     description:
       "roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' ",
@@ -140,7 +150,7 @@ export class RegistryController {
     description: "roles :'ADMIN' ",
   })
   @Roles('ADMIN')
-  @Delete('/update')
+  @Delete('/delete')
   async deleteRegistry(
     @Body() { ids }: BulkRegistryIds,
     @Session() session: UserSessionType,

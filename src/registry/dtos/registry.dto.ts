@@ -4,6 +4,8 @@ import {
   SettlementStatus,
   SampleStatus,
   SampleType,
+  ServiceType,
+  KitType,
 } from '@prisma/client';
 import {
   IsBoolean,
@@ -47,13 +49,21 @@ export class CreateRegistryDto {
   @IsUUID()
   costumerRelationId?: string;
 
-  @ApiProperty({ description: 'Service type', example: 'Service Type 1' })
-  @IsString()
-  serviceType: string;
+  @ApiProperty({
+    description: 'Service type',
+    example: ServiceType.BRCA_1_2,
+    enum: ServiceType,
+  })
+  @IsEnum(ServiceType)
+  serviceType: ServiceType;
 
-  @ApiProperty({ description: 'Kit type', example: 'Kit Type 1' })
-  @IsString()
-  kitType: string;
+  @ApiProperty({
+    description: 'Kit type',
+    example: KitType.AGILENT_SURESELECT_V7,
+    enum: KitType,
+  })
+  @IsEnum(KitType)
+  kitType: KitType;
 
   @ApiProperty({ description: 'sample type', example: 'BLOOD_DNA' })
   @IsEnum(SampleType)
@@ -73,7 +83,6 @@ export class CreateRegistryDto {
   @IsString()
   productPriceUsd?: string;
 
-  
   @ApiProperty({
     description: 'Date of receiving data sample',
     example: '2025-02-01T00:00:00.000Z',
@@ -147,15 +156,23 @@ export class UpdateRegistryDto {
   @IsOptional()
   costumerRelationId?: string;
 
-  @ApiProperty({ description: 'Service type', example: 'Service Type 1' })
-  @IsString()
+  @ApiProperty({
+    description: 'Service type',
+    example: ServiceType.BRCA_1_2,
+    enum: ServiceType,
+  })
   @IsOptional()
-  serviceType?: string;
+  @IsEnum(ServiceType)
+  serviceType?: ServiceType;
 
-  @ApiProperty({ description: 'Kit type', example: 'Kit Type 1' })
-  @IsString()
+  @ApiProperty({
+    description: 'Kit type',
+    example: KitType.AGILENT_SURESELECT_V7,
+    enum: KitType,
+  })
   @IsOptional()
-  kitType?: string;
+  @IsEnum(KitType)
+  kitType?: KitType;
 
   @ApiProperty({ description: 'sample type', example: 'BLOOD_DNA' })
   @IsEnum(SampleType)

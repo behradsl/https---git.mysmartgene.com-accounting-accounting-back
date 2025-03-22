@@ -148,5 +148,29 @@ export class UserService {
     } catch (error) {
       throw new ForbiddenException(error);
     }
+  } 
+
+
+  async findAllNames() {
+    try {
+      const users = await this.ormProvider.user.findMany({
+        
+        select: {
+          email: true,
+         
+          id: true,
+          phoneNumber: true,
+          name: true,
+          position: true,
+        },
+        where: {
+          removedAt: null,
+        },
+      });
+
+      return users;
+    } catch (error) {
+      throw new ForbiddenException(error);
+    }
   }
 }
