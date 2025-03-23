@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Currency } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsEnum,
   IsISO8601,
   IsOptional,
@@ -19,6 +20,16 @@ export class PaymentIdDto {
   })
   @IsUUID()
   id: string;
+}
+
+export class BulkPaymentIdDto {
+  @ApiProperty({
+    description: 'An array of payments IDs to be processed',
+    example: [],
+  })
+  @IsArray()
+  @IsUUID('4', { each: true })
+  ids: string[];
 }
 
 export class CreatePaymentDto {
