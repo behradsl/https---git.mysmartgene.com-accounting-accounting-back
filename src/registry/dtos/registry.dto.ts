@@ -25,10 +25,11 @@ export class RegistryIdDto {
 
 export class BulkRegistryIds {
   @ApiProperty({
-    description: 'an array of registry ids to be processed',
+    description: 'An array of registry IDs to be processed',
     example: [],
   })
   @IsArray()
+  @IsUUID('4', { each: true  })
   ids: string[];
 }
 

@@ -360,6 +360,8 @@ export class InvoiceService {
     }
   }
 
+  
+
   @Cron('0 0 * * *')
   async markOverdueInvoices() {
     await this.ormProvider.laboratoryInvoice.updateMany({

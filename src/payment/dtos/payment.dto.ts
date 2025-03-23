@@ -76,6 +76,7 @@ export class UpdatePaymentDto {
     required: false,
     type: 'string',
   })
+  @IsOptional()
   @IsUUID()
   LaboratoryInvoiceId?: string;
 
@@ -85,6 +86,7 @@ export class UpdatePaymentDto {
     required: false,
     type: 'string',
   })
+  @IsOptional()
   @IsString()
   amountPaid?: string;
 
@@ -94,6 +96,7 @@ export class UpdatePaymentDto {
     required: false,
     type: 'string',
   })
+  @IsOptional()
   @IsISO8601()
   paymentDate?: string;
 
@@ -103,6 +106,7 @@ export class UpdatePaymentDto {
     required: false,
     enum: Currency,
   })
+  @IsOptional()
   @IsEnum(Currency)
   currency?: Currency;
 
@@ -117,13 +121,14 @@ export class UpdatePaymentDto {
   notes?: string;
 }
 
-
 class DateRangeDto {
   @ApiProperty({ description: 'Start date', example: '2025-03-01' })
+  @IsOptional()
   @IsISO8601()
   start: string;
 
   @ApiProperty({ description: 'End date', example: '2025-03-31' })
+  @IsOptional()
   @IsISO8601()
   end: string;
 }
@@ -135,6 +140,7 @@ export class PaymentFindManyDto {
     required: false,
     type: 'string',
   })
+  @IsOptional()
   @IsUUID()
   laboratoryId?: string;
 
@@ -144,6 +150,7 @@ export class PaymentFindManyDto {
     required: false,
     enum: Currency,
   })
+  @IsOptional()
   @IsEnum(Currency)
   currency?: Currency;
 
@@ -152,8 +159,8 @@ export class PaymentFindManyDto {
     example: { start: '2025-03-01', end: '2025-03-31' },
     required: false,
   })
+  @IsOptional()
   @ValidateNested()
   @Type(() => DateRangeDto)
   paymentDueDateRange?: DateRangeDto;
 }
-

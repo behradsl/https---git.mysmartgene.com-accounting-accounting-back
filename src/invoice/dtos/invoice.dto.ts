@@ -22,6 +22,16 @@ export class InvoiceIdDto {
   id: string;
 }
 
+export class BulkInvoiceIdDto {
+  @ApiProperty({
+    description: 'An array of invoice IDs to be processed',
+    example: [],
+  })
+  @IsArray()
+  @IsUUID('4', { each: true })
+  ids: string[];
+}
+
 export class CreateInvoiceDto {
   @ApiProperty({
     description: 'invoice date',
@@ -32,7 +42,6 @@ export class CreateInvoiceDto {
   @IsISO8601()
   invoiceDate?: string;
 
-  
   @ApiProperty({
     description: 'invoice payment due date',
     example: '2025-02-01T00:00:00.000Z',
@@ -75,7 +84,6 @@ export class UpdateInvoiceDto {
   @IsISO8601()
   invoiceDate?: string;
 
-  
   @ApiProperty({
     description: 'invoice payment due date',
     example: '2025-02-01T00:00:00.000Z',
@@ -113,13 +121,15 @@ export class UpdateInvoiceDto {
 }
 
 class DateRangeDto {
-  @ApiProperty({ description: 'Start date', example: '2025-03-01' })
+  @ApiProperty({ description: 'Start date', example: '2025-03-01T00:00:00Z' })
+  @IsOptional()
   @IsISO8601()
-  start: string;
+  start?: string;
 
-  @ApiProperty({ description: 'End date', example: '2025-03-31' })
+  @ApiProperty({ description: 'End date', example: '2025-03-01T00:00:00Z' })
+  @IsOptional()
   @IsISO8601()
-  end: string;
+  end?: string;
 }
 
 export class InvoiceFindManyDto {
@@ -129,6 +139,7 @@ export class InvoiceFindManyDto {
     required: false,
     type: 'string',
   })
+  @IsOptional()
   @IsUUID()
   laboratoryId?: string;
 
@@ -138,6 +149,7 @@ export class InvoiceFindManyDto {
     required: false,
     enum: InvoiceStatus,
   })
+  @IsOptional()
   @IsEnum(InvoiceStatus)
   status?: InvoiceStatus;
 
@@ -145,9 +157,9 @@ export class InvoiceFindManyDto {
     description: 'payment due date range',
     example: { start: '2025-03-01', end: '2025-03-31' },
     required: false,
-    })
+  })
+  @IsOptional()
   @ValidateNested()
   @Type(() => DateRangeDto)
   paymentDueDateRange?: DateRangeDto;
 }
-

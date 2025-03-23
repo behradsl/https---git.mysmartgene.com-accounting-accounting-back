@@ -9,6 +9,8 @@ import { PaymentModule } from './payment/payment.module';
 
 import { ScheduleModule } from '@nestjs/schedule';
 
+
+
 @Module({
   imports: [
     AuthModule,
@@ -25,5 +27,6 @@ import { ScheduleModule } from '@nestjs/schedule';
       useClass: ValidationPipe,
     },
   ],
+  
 })
 export class AppModule {}

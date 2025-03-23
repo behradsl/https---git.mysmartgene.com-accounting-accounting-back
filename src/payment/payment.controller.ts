@@ -14,7 +14,7 @@ import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
-import { CreatePaymentDto, PaymentFindManyDto, PaymentIdDto } from './dtos/payment.dto';
+import { CreatePaymentDto, PaymentFindManyDto, PaymentIdDto, UpdatePaymentDto } from './dtos/payment.dto';
 import { OrderBy, UserSessionType } from 'src/types/global-types';
 import { UpdateInvoiceDto } from 'src/invoice/dtos/invoice.dto';
 
@@ -44,7 +44,7 @@ export class PaymentController {
   @Post('/update/:id')
   async update(
     @Param() paymentId: PaymentIdDto,
-    @Body() args: UpdateInvoiceDto,
+    @Body() args: UpdatePaymentDto,
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;

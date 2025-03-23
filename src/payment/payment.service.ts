@@ -66,7 +66,7 @@ export class PaymentService {
 
       const invoiceStatus: InvoiceStatus =
         invoicePaymentStatus === 'PAID' ? 'PAID' : invoice.status;
-      await this.ormProvider.payment.update({
+      const updatedPayment = await this.ormProvider.payment.update({
         where: { id: payment.id },
         data: {
           LaboratoryInvoice: {
@@ -77,8 +77,9 @@ export class PaymentService {
             },
           },
         },
+        include: { LaboratoryInvoice: true },
       });
-      return payment;
+      return updatedPayment;
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -134,18 +135,25 @@ export class PaymentService {
 
       const invoicePaymentStatus: PaymentStatus =
         outstandingAmount > 0 ? 'PARTIALLY_PAID' : 'PAID';
-      await this.ormProvider.payment.update({
+
+      const invoiceStatus: InvoiceStatus =
+        invoicePaymentStatus === 'PAID'
+          ? 'PAID'
+          : payment.LaboratoryInvoice.status;
+      const updatedPayment = await this.ormProvider.payment.update({
         where: { id: payment.id },
         data: {
           LaboratoryInvoice: {
             update: {
               paymentStatus: invoicePaymentStatus,
               outstandingAmount: outstandingAmount,
+              status: invoiceStatus,
             },
           },
         },
+        include: { LaboratoryInvoice: true },
       });
-      return payment;
+      return updatedPayment;
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -163,7 +171,7 @@ export class PaymentService {
   }
 
   async findAllFiltered(
-    args: PaymentFindManyDto,
+    args: PaymentFindManyDto = {},
     page: number = 1,
     limit: number = 15,
     sortingBy: string = 'createdAt',
@@ -206,36 +214,48 @@ export class PaymentService {
         },
       });
 
-      const totalUsdPayment = await this.ormProvider.payment.aggregate({
-        where: {
-          LaboratoryId: args.laboratoryId ? args.laboratoryId : undefined,
-          currency: 'DOLLAR',
-          paymentDate: {
-            lte: args.paymentDueDateRange?.end,
-            gte: args.paymentDueDateRange?.start,
-          },
-        },
+      const totalUsdPayment =
+        args.currency === 'DOLLAR' || !args.currency
+          ? await this.ormProvider.payment.aggregate({
+              where: {
+                LaboratoryId: args.laboratoryId ? args.laboratoryId : undefined,
+                currency: 'DOLLAR',
+                paymentDate: {
+                  lte: args.paymentDueDateRange?.end,
+                  gte: args.paymentDueDateRange?.start,
+                },
+              },
 
-        _sum: { amountPaid: true },
-      });
+              _sum: { amountPaid: true },
+            })
+          : '0';
 
-      const totalRialPayment = await this.ormProvider.payment.aggregate({
-        where: {
-          LaboratoryId: args.laboratoryId ? args.laboratoryId : undefined,
-          currency: 'RIAL',
-          paymentDate: {
-            lte: args.paymentDueDateRange?.end,
-            gte: args.paymentDueDateRange?.start,
-          },
-        },
+      const totalRialPayment =
+        args.currency === 'RIAL' || !args.currency
+          ? await this.ormProvider.payment.aggregate({
+              where: {
+                LaboratoryId: args.laboratoryId ? args.laboratoryId : undefined,
+                currency: 'RIAL',
+                paymentDate: {
+                  lte: args.paymentDueDateRange?.end,
+                  gte: args.paymentDueDateRange?.start,
+                },
+              },
 
-        _sum: { amountPaid: true },
-      });
+              _sum: { amountPaid: true },
+            })
+          : '0';
       return {
         payments: payments,
         totalCount: paymentsCount,
-        totalUsdPayment: totalUsdPayment,
-        totalRialPayment: totalRialPayment,
+        totalUsdPayment:
+          totalUsdPayment === '0'
+            ? '0'
+            : (totalUsdPayment._sum.amountPaid ?? '0'),
+        totalRialPayment:
+          totalRialPayment === '0'
+            ? '0'
+            : (totalRialPayment._sum.amountPaid ?? '0'),
       };
     } catch (error) {
       throw new NotFoundException(error);
