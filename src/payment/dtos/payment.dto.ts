@@ -132,16 +132,16 @@ export class UpdatePaymentDto {
   notes?: string;
 }
 
-class DateRangeDto {
+export class DateRangeDto {
   @ApiProperty({ description: 'Start date', example: '2025-03-01' })
   @IsOptional()
   @IsISO8601()
-  start: string;
+  start?: string;
 
   @ApiProperty({ description: 'End date', example: '2025-03-31' })
   @IsOptional()
   @IsISO8601()
-  end: string;
+  end?: string;
 }
 
 export class PaymentFindManyDto {

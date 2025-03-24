@@ -8,21 +8,21 @@ export class PaymentExportService {
   constructor(private readonly ormProvider: OrmProvider) {}
 
   async generateExcel({ ids }: BulkPaymentIdDto): Promise<Buffer> {
-    const invoices =
+    const payments =
       ids.length === 0
-        ? await this.ormProvider.laboratoryInvoice.findMany({
-            where: { status: { in: ['ISSUED', 'OVERDUE', 'PAID'] } },
+        ? await this.ormProvider.payment.findMany({
             include: {
               Laboratory: { select: { name: true } },
+              LaboratoryInvoice: { select: { invoiceNumber: true } },
             },
           })
-        : await this.ormProvider.laboratoryInvoice.findMany({
+        : await this.ormProvider.payment.findMany({
             where: {
               id: { in: ids },
-              status: { in: ['ISSUED', 'OVERDUE', 'PAID'] },
             },
             include: {
               Laboratory: { select: { name: true } },
+              LaboratoryInvoice: { select: { invoiceNumber: true } },
             },
           });
 
@@ -33,17 +33,17 @@ export class PaymentExportService {
 
     worksheet.addRow(headerRow);
 
-    invoices.forEach((invoice) => {
-      const rowData = Object.keys(PersianPaymentFieldNames).map(
-        (field) => {
-          const value = invoice[field];
-          return field === 'Laboratory'
-            ? value.name
-            : value instanceof Date
-              ? value.toISOString()
+    payments.forEach((payment) => {
+      const rowData = Object.keys(PersianPaymentFieldNames).map((field) => {
+        const value = payment[field];
+        return field === 'Laboratory'
+          ? value.name
+          : value instanceof Date
+            ? value.toISOString()
+            : field === 'LaboratoryInvoice'
+              ? value.invoiceNumber
               : value;
-        },
-      );
+      });
 
       worksheet.addRow(rowData);
     });
@@ -54,11 +54,9 @@ export class PaymentExportService {
 }
 
 const PersianPaymentFieldNames = {
-  id: 'شناسه',
-
   Laboratory: 'آزمایشگاه',
 
-  LaboratoryInvoice: 'فاکتور آزمایشگاه',
+  LaboratoryInvoice: 'شماره فاکتور',
 
   amountPaid: 'مبلغ پرداخت‌شده',
 

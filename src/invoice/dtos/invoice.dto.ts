@@ -120,7 +120,7 @@ export class UpdateInvoiceDto {
   registryIds?: string[];
 }
 
-class DateRangeDto {
+export class DateRangeDto {
   @ApiProperty({ description: 'Start date', example: '2025-03-01T00:00:00Z' })
   @IsOptional()
   @IsISO8601()

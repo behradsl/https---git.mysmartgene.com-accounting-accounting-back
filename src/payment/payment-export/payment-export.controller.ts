@@ -31,7 +31,7 @@ export class PaymentExportController {
 
     return new StreamableFile(buffer, {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      disposition: 'attachment; filename=invoices.xlsx',
+      disposition: 'attachment; filename=payment.xlsx',
     });
   }
 }

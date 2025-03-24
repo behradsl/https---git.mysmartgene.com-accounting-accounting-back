@@ -17,12 +17,14 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import {
   CreateInvoiceDto,
+  DateRangeDto,
   InvoiceFindManyDto,
   InvoiceIdDto,
   UpdateInvoiceDto,
 } from './dtos/invoice.dto';
 import { OrderBy, UserSessionType } from 'src/types/global-types';
 import { LaboratoryIdDto } from 'src/laboratory/dtos/laboratory.dto';
+import { Currency, InvoiceStatus } from '@prisma/client';
 
 @ApiTags('/invoice')
 @UseGuards(LocalGuard, RolesGuard)
@@ -40,7 +42,7 @@ export class InvoiceController {
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;
-    return  this.invoiceService.create(args, { id: userId });
+    return this.invoiceService.create(args, { id: userId });
   }
 
   @ApiOperation({
@@ -115,22 +117,49 @@ export class InvoiceController {
     name: 'sortingBy',
     required: false,
     example: 'createdAt',
-    description: 'fieldNAme registries would be sorted by (default: createdAt)',
+    description: 'Field name by which records are sorted (default: createdAt)',
   })
   @ApiQuery({
     name: 'orderBy',
     required: false,
     example: OrderBy.asc,
-    description: 'order of registry sorting (default: asd )',
+    description: 'Order of registry sorting (default: asc)',
+  })
+  @ApiQuery({
+    name: 'laboratoryId',
+    required: false,
+    example: '',
+    description: 'ID of the laboratory',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: InvoiceStatus,
+    description: 'invoice status',
+  })
+  @ApiQuery({
+    name: 'start',
+    required: false,
+    example: '2025-03-01',
+    description: 'Start date for payment due range',
+  })
+  @ApiQuery({
+    name: 'end',
+    required: false,
+    example: '2025-03-31',
+    description: 'End date for payment due range',
   })
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('/find/all/filtered')
+  @Get('/find/all/filtered')
   async findAllFiltered(
-    @Body() args: InvoiceFindManyDto,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sortingBy') sortingBy?: string,
     @Query('orderBy') orderBy?: OrderBy,
+    @Query('laboratoryId') laboratoryId?: string,
+    @Query('status') status?: InvoiceStatus,
+    @Query('start') start?: string,
+    @Query('end') end?: string,
   ) {
     try {
       const pageNumber = page ? parseInt(page, 10) : 1;
@@ -139,8 +168,15 @@ export class InvoiceController {
         throw new BadRequestException('Page number must be at least 1');
       if (limitNumber < 1)
         throw new BadRequestException('Limit must be at least 1');
+
+      const paymentDueDateRange: DateRangeDto = { start: start, end: end };
+
       return await this.invoiceService.findAllFiltered(
-        args,
+        {
+          laboratoryId: laboratoryId,
+          status: status,
+          paymentDueDateRange: paymentDueDateRange,
+        },
         pageNumber,
         limitNumber,
         sortingBy,

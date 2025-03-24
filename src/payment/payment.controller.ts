@@ -14,9 +14,16 @@ import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
-import { CreatePaymentDto, PaymentFindManyDto, PaymentIdDto, UpdatePaymentDto } from './dtos/payment.dto';
+import {
+  CreatePaymentDto,
+  DateRangeDto,
+  PaymentFindManyDto,
+  PaymentIdDto,
+  UpdatePaymentDto,
+} from './dtos/payment.dto';
 import { OrderBy, UserSessionType } from 'src/types/global-types';
 import { UpdateInvoiceDto } from 'src/invoice/dtos/invoice.dto';
+import { Currency } from '@prisma/client';
 
 @ApiTags('/payment')
 @UseGuards(LocalGuard, RolesGuard)
@@ -70,32 +77,67 @@ export class PaymentController {
     name: 'sortingBy',
     required: false,
     example: 'createdAt',
-    description: 'fieldNAme registries would be sorted by (default: createdAt)',
+    description: 'Field name by which records are sorted (default: createdAt)',
   })
   @ApiQuery({
     name: 'orderBy',
     required: false,
     example: OrderBy.asc,
-    description: 'order of registry sorting (default: asd )',
+    description: 'Order of registry sorting (default: asc)',
+  })
+  @ApiQuery({
+    name: 'laboratoryId',
+    required: false,
+    example: '',
+    description: 'ID of the laboratory',
+  })
+  @ApiQuery({
+    name: 'currency',
+    required: false,
+    enum: Currency,
+    description: 'Payment currency',
+  })
+  @ApiQuery({
+    name: 'start',
+    required: false,
+    example: '2025-03-01',
+    description: 'Start date for payment due range',
+  })
+  @ApiQuery({
+    name: 'end',
+    required: false,
+    example: '2025-03-31',
+    description: 'End date for payment due range',
   })
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('/find/all')
+  @Get('/find/all')
   async findAllFiltered(
-    @Body() args: PaymentFindManyDto,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sortingBy') sortingBy?: string,
     @Query('orderBy') orderBy?: OrderBy,
+    @Query('laboratoryId') laboratoryId?: string,
+    @Query('currency') currency?: Currency,
+    @Query('start') start?: string,
+    @Query('end') end?: string,
   ) {
     try {
       const pageNumber = page ? parseInt(page, 10) : 1;
       const limitNumber = limit ? parseInt(limit, 10) : 15;
+
       if (pageNumber < 1)
         throw new BadRequestException('Page number must be at least 1');
       if (limitNumber < 1)
         throw new BadRequestException('Limit must be at least 1');
+
+      const paymentDueDateRange: DateRangeDto = { start: start, end: end };
+
       return await this.paymentService.findAllFiltered(
-        args,
+        {
+          laboratoryId: laboratoryId,
+          currency: currency,
+          paymentDueDateRange: paymentDueDateRange,
+        },
         pageNumber,
         limitNumber,
         sortingBy,
@@ -104,14 +146,5 @@ export class PaymentController {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
-  }
-
-  @ApiOperation({
-    description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
-  })
-  @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Get('/find/:id')
-  async findOne(@Param() { id }: PaymentIdDto) {
-    return await this.paymentService.findOne({ id });
   }
 }
