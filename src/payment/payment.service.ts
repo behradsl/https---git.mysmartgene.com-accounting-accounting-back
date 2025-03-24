@@ -35,6 +35,10 @@ export class PaymentService {
       });
 
       if (!invoice) throw new NotFoundException('invoice not Found!');
+      if (invoice.status === 'DRAFT')
+        throw new NotFoundException('invoice not issued yet!');
+      if (invoice.status === 'CANCELLED')
+        throw new NotFoundException('invoice cancelled!');
 
       const payment = await this.ormProvider.payment.create({
         data: {
@@ -99,8 +103,11 @@ export class PaymentService {
           })
         : undefined;
 
-      if (LaboratoryInvoiceId && !invoice)
-        throw new NotFoundException('invoice not Found!');
+      if (!invoice) throw new NotFoundException('invoice not Found!');
+      if (invoice.status === 'DRAFT')
+        throw new NotFoundException('invoice not issued yet!');
+      if (invoice.status === 'CANCELLED')
+        throw new NotFoundException('invoice cancelled!');
 
       const payment = await this.ormProvider.payment.update({
         where: { id: id },

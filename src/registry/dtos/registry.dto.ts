@@ -1,8 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   InvoiceStatus,
-  SettlementStatus,
-  SampleStatus,
   SampleType,
   ServiceType,
   KitType,
