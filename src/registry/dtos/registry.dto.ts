@@ -27,7 +27,7 @@ export class BulkRegistryIds {
     example: [],
   })
   @IsArray()
-  @IsUUID('4', { each: true  })
+  @IsUUID('4', { each: true })
   ids: string[];
 }
 
@@ -80,6 +80,7 @@ export class CreateRegistryDto {
 
   @ApiProperty({ description: 'product price in usd ', example: '100000' })
   @IsString()
+  @IsOptional()
   productPriceUsd?: string;
 
   @ApiProperty({
