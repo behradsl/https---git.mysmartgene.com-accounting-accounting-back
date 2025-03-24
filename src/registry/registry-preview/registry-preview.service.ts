@@ -165,7 +165,7 @@ export class RegistryPreviewService {
             serviceType: args.serviceType,
             kitType: args.kitType,
             urgentStatus: args.urgentStatus,
-            productPriceUsd:args.productPriceUsd,
+            productPriceUsd: args.productPriceUsd,
             description: args.description,
             costumerRelation: args.costumerRelationId
               ? { connect: { id: args.costumerRelationId } }
@@ -188,7 +188,7 @@ export class RegistryPreviewService {
             resultReadyTime: args.resultReadyTime
               ? new Date(args.resultReadyTime)
               : undefined,
-            sendSeries: args.sendSeries,
+            sendSeries: args.sendSeries ? Number(args.sendSeries) : undefined,
             sampleStatus: sampleStatus,
             registryUpdatedBy: { connect: { id: userId } },
             updatedAt: new Date(),

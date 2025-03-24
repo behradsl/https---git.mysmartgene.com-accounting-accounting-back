@@ -48,14 +48,17 @@ export class PaymentController {
     description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
   })
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('/update/:id')
+  @Post('/update')
   async update(
-    @Param() paymentId: PaymentIdDto,
-    @Body() args: UpdatePaymentDto,
+    @Body() { id: paymentId, ...args }: UpdatePaymentDto & PaymentIdDto,
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;
-    return await this.paymentService.update(args, { id: userId }, paymentId);
+    return await this.paymentService.update(
+      args,
+      { id: userId },
+      { id: paymentId },
+    );
   }
 
   @ApiOperation({

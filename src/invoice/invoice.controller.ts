@@ -201,10 +201,10 @@ export class InvoiceController {
   })
   @ApiBody({ type: UpdateInvoiceDto, description: 'Partial update of invoice' })
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('/update/:id')
+  @Post('/update')
   async update(
-    @Param() invoiceId: InvoiceIdDto,
-    @Body() args: Partial<UpdateInvoiceDto>,
+    @Body()
+    { id: invoiceId, ...args }: Partial<UpdateInvoiceDto> & InvoiceIdDto,
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;
@@ -212,7 +212,7 @@ export class InvoiceController {
 
     return this.invoiceService.update(
       args,
-      invoiceId,
+      { id: invoiceId },
       { id: userId },
       position,
     );
@@ -222,9 +222,9 @@ export class InvoiceController {
     description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
   })
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('/issuance/:id')
+  @Post('/issuance')
   async invoiceIssuance(
-    @Param() args: InvoiceIdDto,
+    @Body() args: InvoiceIdDto,
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;
@@ -235,9 +235,9 @@ export class InvoiceController {
     description: "roles :'ADMIN', 'FINANCE_MANAGER' ",
   })
   @Roles('ADMIN', 'FINANCE_MANAGER')
-  @Post('/cancellation/:id')
+  @Post('/cancellation')
   async invoiceCancellation(
-    @Param() args: InvoiceIdDto,
+    @Body() args: InvoiceIdDto,
     @Session() session: UserSessionType,
   ) {
     const userId = session.passport.user.id;

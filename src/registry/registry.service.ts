@@ -191,7 +191,10 @@ export class RegistryService {
           data: {
             registryUpdatedBy: { connect: { id: userId } },
             updatedAt: new Date(),
-            sampleStatus,
+
+            sendSeries: updateData.sendSeries
+              ? Number(updateData.sendSeries)
+              : undefined,
             ...updateData,
           },
         });
