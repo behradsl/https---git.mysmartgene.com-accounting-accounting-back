@@ -16,13 +16,13 @@ import { Roles } from 'src/auth/decorators/role.decorator';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 
-@ApiTags('import-registry')
+@ApiTags('registry/import')
 @UseGuards(LocalGuard, RolesGuard)
-@Controller('import-registry')
+@Controller('registry/import/file')
 export class ImportRegistryController {
   constructor(private readonly importRegistryService: ImportRegistryService) {}
   @Roles('ADMIN', 'DATA_ENTRY')
-  @Post('upload')
+  @Post('/upload')
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

@@ -1,52 +1,28 @@
-import { BadRequestException } from '@nestjs/common';
-import { InvoiceStatus, SampleStatus, SettlementStatus } from '@prisma/client';
+import { KitType, ServiceType } from '@prisma/client';
 import { RegistryType } from 'src/types/global-types';
-
-export function validateEnums(data: any, index: number) {
-  if (!Object.values(SettlementStatus).includes(data.settlementStatus)) {
-    return { enum: 'SettlementStatus' };
-  }
-
-  if (!Object.values(InvoiceStatus).includes(data.invoiceStatus)) {
-    return { enum: 'InvoiceStatus' };
-  }
-
-  if (!Object.values(SampleStatus).includes(data.sampleStatus)) {
-    return { enum: 'SampleStatus' };
-  }
-
-  return null;
-}
 
 export function checkRequiredProps(data, index: number) {
   const requiredFields: (keyof RegistryType)[] = [
     'MotId',
-    'name',
+    'personName',
     'Laboratory',
     'serviceType',
     'kitType',
-    'price',
-    'settlementStatus',
-    'invoiceStatus',
-    'totalInvoiceAmount',
-    'totalPaid',
-    'sampleStatus',
+    'sampleType',
+    'dataSampleReceived',
     'sendSeries',
   ];
 
+  const missedRequiredProps: string[] = [];
   for (const field of requiredFields) {
-    
-
     if (data[field] === undefined || data[field] === null || !data[field]) {
-      return { field: field };
+      missedRequiredProps.push(field);
     }
   }
-  return null;
+  return missedRequiredProps;
 }
 
 function parseDate(dateString: string | number | Date): Date | null {
- 
-
   if (!dateString) return null;
   if (dateString instanceof Date) return dateString;
   if (typeof dateString === 'number') {
@@ -59,47 +35,38 @@ function parseDate(dateString: string | number | Date): Date | null {
   return null;
 }
 
-export function rawDataToRegistryType(rawData): RegistryType[] {
-  
+export function isValidEnumValue<T extends Record<string, string>>(
+  enumObj: T,
+  value: any,
+): boolean {
+  return Object.values(enumObj).includes(value);
+}
 
-  return rawData.map((data: any, index: number) => {
+export function rawDataToRegistryType(
+  rawData,
+  
+): RegistryType[] {
+  return rawData.map((data: RegistryType, index: number) => {
     const missedRequiredProps = checkRequiredProps(data, index);
 
-    if (missedRequiredProps) {
+    if (missedRequiredProps.length > 0) {
       throw new Error(
-        `there is no ${missedRequiredProps.field} in row ${index}`,
+        `Missing required fields in row ${index}: ${missedRequiredProps.join(', ')}`,
       );
     }
 
-    const invalidEnums = validateEnums(data, index);
-    if (invalidEnums) {
-      throw new Error(`Invalid ${invalidEnums.enum} in row ${index}`);
+    if (!isValidEnumValue(ServiceType, data.serviceType)) {
+      throw new Error(
+        `Invalid serviceType "${data.serviceType}" in row ${index}`,
+      );
     }
 
-    
+    if (!isValidEnumValue(KitType, data.kitType)) {
+      throw new Error(`Invalid kitType "${data.kitType}" in row ${index}`);
+    }
+
     return {
       ...data,
-      price: parseFloat(data.price),
-      totalInvoiceAmount: parseFloat(data.totalInvoiceAmount),
-      installmentOne: data.installmentOne
-        ? parseFloat(data.installmentOne)
-        : null,
-      installmentTwo: data.installmentTwo
-        ? parseFloat(data.installmentTwo)
-        : null,
-      installmentThree: data.installmentThree
-        ? parseFloat(data.installmentThree)
-        : null,
-      totalPaid: parseFloat(data.totalPaid),
-      KoreaSendDate: parseDate(data.KoreaSendDate),
-      resultReadyTime: parseDate(data.resultReadyTime),
-      proformaSentDate: parseDate(data.proformaSentDate),
-      installmentOneDate: parseDate(data.installmentOneDate),
-      installmentTwoDate: parseDate(data.installmentTwoDate),
-      installmentThreeDate: parseDate(data.installmentThreeDate),
-      settlementDate: parseDate(data.settlementDate),
-      officialInvoiceSentDate: parseDate(data.officialInvoiceSentDate),
-      sendSeries: String(data.sentSeries),
     };
   });
 }

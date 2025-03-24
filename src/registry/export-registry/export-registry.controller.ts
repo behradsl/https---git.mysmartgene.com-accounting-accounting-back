@@ -1,47 +1,73 @@
-import { Controller, Get, Res, Session, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Session,
+  StreamableFile,
+  UseGuards,
+} from '@nestjs/common';
 import { LocalGuard } from 'src/auth/guards/local.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { RegistryExportService } from './registry-export.service';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { UserSessionType } from 'src/types/global-types';
-import { Response } from 'express';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BulkRegistryIds } from '../dtos/registry.dto';
 
-@ApiTags('export-registry')
+@ApiTags('/registry/export')
 @UseGuards(LocalGuard, RolesGuard)
-@Controller('export-registry')
+@Controller('/registry/export')
 export class ExportRegistryController {
   constructor(private readonly registryExportService: RegistryExportService) {}
 
-  @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
-  @Get('export')
-  @ApiOperation({ summary: 'Export Registry data to an Excel file' })
-  @ApiResponse({
-    status: 200,
-    description: 'Excel file containing registry data',
-    content: {
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {},
-    },
+  @ApiOperation({
+    description:
+      "roles :'ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE' ",
   })
+  @Roles('ADMIN', 'FINANCE_MANAGER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE')
+  @Post('/all')
   async exportToExcel(
-    @Res() res: Response,
     @Session() session: UserSessionType,
-  ) {
+    @Body() { ids }: BulkRegistryIds,
+  ): Promise<any> {
     const position = session.passport.user.position;
-    await this.registryExportService.generateExcel(res, position);
+    const buffer = await this.registryExportService.generateExcel(position, {
+      ids,
+    });
+
+    return new StreamableFile(buffer, {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      disposition: 'attachment; filename=registries.xlsx',
+    });
   }
 
+  @ApiOperation({ description: 'roles :ADMIN , DATA_ENTRY ' })
   @Roles('ADMIN', 'DATA_ENTRY')
-  @Get('exportEmpty')
-  @ApiOperation({ summary: 'Export empty correct columns Excel file' })
-  @ApiResponse({
-    status: 200,
-    description: 'empty correct columns Excel file',
-    content: {
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {},
-    },
-  })
-  async generateEmptyExcel(@Res() res: Response) {
-    await this.registryExportService.generateEmptyExcel(res);
+  @Post('/preview/all')
+  async exportPreviewToExcel(
+    @Session() session: UserSessionType,
+    @Body() { ids }: BulkRegistryIds,
+  ): Promise<any> {
+    const buffer = await this.registryExportService.generatePreviewExcel(
+      session,
+      { ids },
+    );
+
+    return new StreamableFile(buffer, {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      disposition: 'attachment; filename=registries.xlsx',
+    });
+  }
+
+  @ApiOperation({ description: 'roles :ADMIN , DATA_ENTRY ' })
+  @Roles('ADMIN', 'DATA_ENTRY')
+  @Get('/empty')
+  async generateEmptyExcel() {
+    const buffer = await this.registryExportService.generateEmptyExcel();
+    return new StreamableFile(buffer, {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      disposition: 'attachment; filename=registries.xlsx',
+    });
   }
 }

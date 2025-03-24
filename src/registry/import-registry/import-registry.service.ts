@@ -5,12 +5,15 @@ import * as XLSX from 'xlsx';
 
 import { Prisma } from '@prisma/client';
 import { rawDataToRegistryType } from '../utilities/registryType.utilities';
+import { sampleStatusCalculate } from '../utilities/sampleStatusCal.utilitiels';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ImportRegistryService {
   constructor(
     private readonly ormProvider: OrmProvider,
     private readonly laboratoryService: LaboratoryService,
+    private readonly userService: UserService,
   ) {}
 
   async importRegistryData(file: Express.Multer.File, userId: string) {
@@ -18,49 +21,53 @@ export class ImportRegistryService {
       const workbook = XLSX.read(file.buffer, { type: 'buffer' });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-      const headers = [
-        'MotId',
-        'name',
-        'Laboratory',
-        'serviceType',
-        'kitType',
-        'urgentStatus',
-        'price',
-        'description',
-        'costumerRelationInfo',
-        'KoreaSendDate',
-        'resultReady',
-        'resultReadyTime',
-        'settlementStatus',
-        'invoiceStatus',
-        'proformaSent',
-        'proformaSentDate',
-        'totalInvoiceAmount',
-        'installmentOne',
-        'installmentOneDate',
-        'installmentTwo',
-        'installmentTwoDate',
-        'installmentThree',
-        'installmentThreeDate',
-        'totalPaid',
-        'settlementDate',
-        'officialInvoiceSent',
-        'officialInvoiceSentDate',
-        'sampleStatus',
-        'sendSeries',
-      ];
+      const persianHeaders = {
+        'شناسه MOT': 'MotId',
+        'نام شخص': 'personName',
+        آزمایشگاه: 'Laboratory',
+        'ارتباط مشتری': 'costumerRelation',
+        'نوع خدمت': 'serviceType',
+        'نوع کیت': 'kitType',
+        'نوع نمونه': 'sampleType',
+        'وضعیت اضطراری': 'urgentStatus',
+        توضیحات: 'description',
+        'قیمت محصول به دلار': 'productPriceUsd',
 
-      const parsedData = XLSX.utils.sheet_to_json(sheet, {
-        header: headers,
-        range: 1,
+        'تاریخ رسیدن نمونه': 'dataSampleReceived',
+        'تاریخ استخراج نمونه': 'sampleExtractionDate',
+        'تاریخ ارسال به کره': 'dataSentToKorea',
+        'تاریخ رسیدن داده های خام': 'rawFileReceivedDate',
+        'تاریخ تکمیل آنالیز': 'analysisCompletionDate',
+        'زمان آماده بودن نتیجه': 'resultReadyTime',
+        'سری ارسال': 'sendSeries',
+      };
+
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      const rawHeaders = jsonData[0] as string[];
+
+      const mappedHeaders = rawHeaders.map(
+        (header) => persianHeaders[header] || header,
+      );
+
+      const dataRows = jsonData.slice(1);
+
+      const parsedData = dataRows.map((row: any) => {
+        const rowData: Record<string, any> = {};
+        row.forEach((value, index) => {
+          const key = mappedHeaders[index];
+          if (key) rowData[key] = value;
+        });
+        return rowData;
       });
-      const correctPArsedData = rawDataToRegistryType(parsedData);
 
-      if (correctPArsedData) {
+      const correctParsedData = rawDataToRegistryType(parsedData);
+
+      if (correctParsedData) {
         const dataToImport: Prisma.RegistryCreateManyInput[] = [];
         const skippedMotIds: string[] = [];
 
-        for (const data of correctPArsedData) {
+        for (const data of correctParsedData) {
           const existingMot = await this.ormProvider.registry.findFirst({
             where: { MotId: data.MotId },
           });
@@ -70,7 +77,7 @@ export class ImportRegistryService {
             continue;
           }
           const laboratory = await this.laboratoryService.findByName(
-            data.Laboratory,
+            String(data.Laboratory),
           );
           if (!laboratory) {
             throw new BadRequestException(
@@ -78,42 +85,31 @@ export class ImportRegistryService {
             );
           }
 
+          const userCostumerRelation = data.costumerRelation
+            ? await this.userService.findByContactInfo(
+                String(data.costumerRelation),
+              )
+            : null;
+
+          const sampleStatus = sampleStatusCalculate(
+            data.dataSampleReceived,
+            data.sampleExtractionDate,
+            data.dataSentToKorea,
+            data.rawFileReceivedDate,
+            data.analysisCompletionDate,
+          );
+
+          const { Laboratory, costumerRelation, ...filteredData } = data;
+
           dataToImport.push({
-            MotId: data.MotId,
-            name: data.name,
             laboratoryId: laboratory.id,
-            serviceType: data.serviceType,
-            kitType: data.kitType,
-            urgentStatus: data.urgentStatus,
-            price: data.price,
-            description: data.description,
-            costumerRelationInfo: data.costumerRelationInfo,
-            KoreaSendDate: data.KoreaSendDate,
-            resultReady: data.resultReady,
-            resultReadyTime: data.resultReadyTime,
-            settlementStatus: data.settlementStatus,
-            invoiceStatus: data.invoiceStatus,
-            proformaSent: data.proformaSent,
-            proformaSentDate: data.proformaSentDate,
-            totalInvoiceAmount: data.totalInvoiceAmount,
-            installmentOne: data.installmentOne,
-            installmentOneDate: data.installmentOneDate,
-            installmentTwo: data.installmentTwo,
-            installmentTwoDate: data.installmentTwoDate,
-            installmentThree: data.installmentThree,
-            installmentThreeDate: data.installmentThreeDate,
-            totalPaid: data.totalPaid,
-            paymentPercentage:
-              (Number(data.totalPaid) / Number(data.totalInvoiceAmount)) * 100,
-            settlementDate: data.settlementDate,
-            officialInvoiceSent: data.officialInvoiceSent,
-            officialInvoiceSentDate: data.officialInvoiceSentDate,
-            sampleStatus: data.sampleStatus,
-            sendSeries: data.sendSeries,
+            sampleStatus: sampleStatus,
+            userIdRegistryCreatedBy: userId,
+            costumerRelationId: userCostumerRelation?.id,
 
             createdAt: new Date(),
-            updatedAt: null,
-            userIdRegistryCreatedBy: userId,
+
+            ...filteredData,
           });
         }
 

@@ -4,8 +4,8 @@ import { RegistryFieldAccessController } from './registry-field-access.controlle
 import { OrmProvider } from 'src/providers/orm.provider';
 
 @Module({
-  providers: [RegistryFieldAccessService , OrmProvider],
+  providers: [RegistryFieldAccessService, OrmProvider],
   controllers: [RegistryFieldAccessController],
-  exports:[RegistryFieldAccessService]
+  exports: [RegistryFieldAccessService],
 })
 export class RegistryFieldAccessModule {}

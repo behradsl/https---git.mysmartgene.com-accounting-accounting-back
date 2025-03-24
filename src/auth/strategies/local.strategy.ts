@@ -29,17 +29,11 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
         throw new UnauthorizedException('Invalid User Credentials!');
       }
 
-      
-
       const rememberMe = req.body.rememberMe === true;
 
       req.session.cookie.maxAge = rememberMe
         ? 30 * 24 * 60 * 60 * 1000 // 30 days
         : 24 * 60 * 60 * 1000; // 24 hours
-
-     
-
-
 
       req.session.save((err) => {
         if (err) console.error('Session save error:', err);

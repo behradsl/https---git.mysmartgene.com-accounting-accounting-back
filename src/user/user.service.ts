@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
   CreateUserDto,
@@ -7,7 +11,7 @@ import {
   UserIdDto,
 } from './dtos/user.dto';
 import { hashPassword } from 'src/utilities/hash';
-import { Prisma } from '@prisma/client';
+import { Position, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -20,17 +24,22 @@ export class UserService {
       return await this.ormProvider.user.create({
         data: {
           email: args.email,
-
           hashPassword: hashedPassword,
-
           phoneNumber: args.phoneNumber,
           name: args.name,
-          position: args.Position,
-          createdAt: new Date(),
+          position: args.position as Position,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          position: true,
         },
       });
     } catch (error) {
-      throw new ForbiddenException(error);
+      console.error('Error creating user:', error);
+      throw new BadRequestException(error.message || 'Failed to create user');
     }
   }
 
@@ -43,7 +52,7 @@ export class UserService {
           email: args.email,
 
           hashPassword: hashedPassword,
-          position: args.Position,
+          position: args.position,
           phoneNumber: args.phoneNumber,
           name: args.name,
 
@@ -61,6 +70,13 @@ export class UserService {
         where: { id: id },
         select: {
           email: true,
+          createdAt: true,
+          removedAt: true,
+          id: true,
+          LaboratoryAccountManager: true,
+          LaboratoryCreatedBy: { select: { id: true } },
+          RegistryCreatedBy: { select: { id: true } },
+          RegistryUpdatedBy: { select: { id: true } },
 
           phoneNumber: true,
           name: true,
@@ -69,6 +85,24 @@ export class UserService {
       });
     } catch (error) {
       throw new ForbiddenException(error);
+    }
+  }
+
+  async findByContactInfo(info: string) {
+    try {
+      const user = await this.ormProvider.user.findFirst({
+        where: { OR: [{ phoneNumber: info }, { email: info }] },
+      });
+
+      if (!user) {
+        throw new BadRequestException(
+          `no user found with ${info} information!`,
+        );
+      }
+
+      return user;
+    } catch (error) {
+      throw new BadRequestException(error);
     }
   }
 
@@ -85,24 +119,56 @@ export class UserService {
     }
   }
 
-  async findMany(args: UserFindDto) {
+  async findMany(page: number = 1, limit: number = 15) {
     try {
-      const whereInput: Prisma.UserWhereInput = {
-        email: args.email,
-
-        name: args.name,
-        phoneNumber: args.phoneNumber,
-      };
-      return await this.ormProvider.user.findMany({
-        where: whereInput,
+      const skip = (page - 1) * limit;
+      const users = await this.ormProvider.user.findMany({
+        skip: skip,
+        take: limit,
         select: {
           email: true,
+          createdAt: true,
+          removedAt: true,
+          id: true,
+          LaboratoryAccountManager: true,
+          LaboratoryCreatedBy: { select: { id: true } },
+          RegistryCreatedBy: { select: { id: true } },
+          RegistryUpdatedBy: { select: { id: true } },
 
           phoneNumber: true,
           name: true,
           position: true,
         },
+        where: {
+          removedAt: null,
+        },
       });
+
+      return users;
+    } catch (error) {
+      throw new ForbiddenException(error);
+    }
+  } 
+
+
+  async findAllNames() {
+    try {
+      const users = await this.ormProvider.user.findMany({
+        
+        select: {
+          email: true,
+         
+          id: true,
+          phoneNumber: true,
+          name: true,
+          position: true,
+        },
+        where: {
+          removedAt: null,
+        },
+      });
+
+      return users;
     } catch (error) {
       throw new ForbiddenException(error);
     }

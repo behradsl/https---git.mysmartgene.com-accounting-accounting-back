@@ -51,7 +51,7 @@ export class CreateUserDto {
     example: Position.ADMIN,
   })
   @IsEnum(Position)
-  Position: Position;
+  position: Position;
 }
 
 export class UpdateUserDto extends UserIdDto {
@@ -98,7 +98,7 @@ export class UpdateUserDto extends UserIdDto {
     example: Position.ADMIN,
   })
   @IsEnum(Position)
-  Position: Position;
+  position: Position;
 }
 
 export class UserFindDto {

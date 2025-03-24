@@ -1,13 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { OrmProvider } from 'src/providers/orm.provider';
 import {
+  CreateRegistryFieldAccessArrayDto,
   CreateRegistryFieldAccessDto,
-  RegistryFieldAccessIdDto,
-  RegistryFieldAccessPosition,
-  UpdateRegistryFieldAccessDto,
+  RegistryFieldAccessFindByPositionNameDto,
 } from './dtos/registry-field-access.dto';
 import { Position } from '@prisma/client';
-import { utimes } from 'fs';
 
 @Injectable()
 export class RegistryFieldAccessService {
@@ -40,9 +38,41 @@ export class RegistryFieldAccessService {
     }
   }
 
+  async upsertMany(data: CreateRegistryFieldAccessArrayDto) {
+    try {
+      return await this.ormProvider.$transaction(
+        data.registryFieldAccesses.map(({ access, position, registryField }) =>
+          this.ormProvider.registryFieldAccess.upsert({
+            where: {
+              position_registryField: {
+                position,
+                registryField,
+              },
+            },
+            update: { access },
+            create: { position, registryField, access },
+          }),
+        ),
+      );
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async findByPosition(args: RegistryFieldAccessFindByPositionNameDto) {
+    try {
+      const fieldAccess = await this.ormProvider.registryFieldAccess.findMany({
+        where: { position: args.position },
+      });
+      return fieldAccess;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
   async findAll() {
     try {
-      return await this.ormProvider.registryFieldAccess.findMany();
+      return await this.ormProvider.registryFieldAccess.findMany({});
     } catch (error) {
       throw new BadRequestException(
         'Failed to retrieve registry field access records',
@@ -53,7 +83,12 @@ export class RegistryFieldAccessService {
   async findVisibleFields(position: Position) {
     try {
       const fieldAccess = await this.ormProvider.registryFieldAccess.findMany({
-        where: { position: position, access: 'VISIBLE' },
+        where: {
+          OR: [
+            { position: position, access: 'VISIBLE' },
+            { position: position, access: 'EDITABLE' },
+          ],
+        },
       });
 
       return fieldAccess.map((item) => {

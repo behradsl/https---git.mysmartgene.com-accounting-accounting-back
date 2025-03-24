@@ -22,46 +22,93 @@ export class FieldVisibilityInterceptor implements NestInterceptor {
     const user = session.passport.user;
     const userPosition = user.position;
 
+    if (userPosition === 'ADMIN') {
+      return next.handle().pipe(
+        map((response) => ({
+          registries: this.makeFieldsEditable(response.registries),
+          totalCount: response.totalCount,
+        })),
+      );
+    }
+
     const allowedFields = await this.getAllowedFields(userPosition);
 
-    // If user is admin, return data without filtering
-    if (allowedFields === 'ADMIN') {
-      return next.handle();
-    }
-
-    // Ensure allowedFields is an array before applying filtering
-    if (Array.isArray(allowedFields)) {
-      return next.handle().pipe(map((data) => this.filterFields(data, allowedFields)));
-    }
-
-    return next.handle(); // Fallback if no filtering is needed
+    return next.handle().pipe(
+      map((response) => ({
+        registries: this.filterFields(response.registries, allowedFields),
+        totalCount: response.totalCount,
+      })),
+    );
   }
 
-  private async getAllowedFields(position: Position): Promise<string[] | 'ADMIN'> {
-    if (position === 'ADMIN') {
-      return 'ADMIN';
-    }
+  private async getAllowedFields(
+    position: Position,
+  ): Promise<{ field: string; editable: boolean }[]> {
     const fieldAccess = await this.ormProvider.registryFieldAccess.findMany({
       where: {
-        OR: [{ position, access: 'VISIBLE' }, { position, access: 'EDITABLE' }],
+        OR: [
+          { position, access: 'VISIBLE' },
+          { position, access: 'EDITABLE' },
+        ],
       },
-      select: { registryField: true },
+      select: { registryField: true, access: true },
     });
 
-    return fieldAccess.map((fa) => fa.registryField);
+    const allowedFields = fieldAccess.map((fa) => ({
+      field: fa.registryField,
+      editable: fa.access === 'EDITABLE',
+    }));
+
+    allowedFields.push({ field: 'id', editable: false });
+
+    return allowedFields;
   }
 
-  private filterFields(data: any, allowedFields: string[]): any {
+  private filterFields(
+    data: any | any[], // Can be a single object or an array
+    allowedFields: { field: string; editable: boolean }[],
+  ): any | any[] {
     if (Array.isArray(data)) {
       return data.map((item) => this.filterObject(item, allowedFields));
     }
     return this.filterObject(data, allowedFields);
   }
 
-  private filterObject(obj: any, allowedFields: string[]): any {
+  private filterObject(
+    obj: any,
+    allowedFields: { field: string; editable: boolean }[],
+  ): any {
     if (!obj || typeof obj !== 'object') return obj;
+
+    const allowedFieldMap = Object.fromEntries(
+      allowedFields.map(({ field, editable }) => [field, editable]),
+    );
+
     return Object.fromEntries(
-      Object.entries(obj).filter(([key]) => allowedFields.includes(key)),
+      Object.entries(obj)
+        .filter(([key]) => allowedFieldMap.hasOwnProperty(key))
+        .map(([key, value]) => [
+          key,
+          { value, editable: allowedFieldMap[key] },
+        ]),
+    );
+  }
+
+  private makeFieldsEditable(data: any | any[]): any | any[] {
+    if (Array.isArray(data)) {
+      return data.map((item) => this.makeObjectEditable(item));
+    }
+    return this.makeObjectEditable(data);
+  }
+
+  private makeObjectEditable(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+
+    return Object.fromEntries(
+      Object.entries(obj).map(([key, value]) => [
+        key,
+        { value, editable: true },
+      ]),
     );
   }
 }
