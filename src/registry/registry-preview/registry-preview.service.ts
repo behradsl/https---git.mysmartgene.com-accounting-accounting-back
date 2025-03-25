@@ -114,14 +114,14 @@ export class RegistryPreviewService {
   }
 
   async updateNotFinalRegistry(
-    { ids }: BulkRegistryIds,
-    args: UpdateRegistryDto,
+   
+    args: Partial<UpdateRegistryDto>,
     userId: string,
     position: Position,
   ) {
     try {
       const existingRegistries = await this.ormProvider.registry.findMany({
-        where: { id: { in: ids }, final: false },
+        where: { id: { in: args.ids }, final: false },
       });
 
       if (existingRegistries.length === 0) {

@@ -320,6 +320,11 @@ export class InvoiceService {
         },
       });
 
+      await this.registryService.updateAssignedInvoices(
+        { ids: [id] },
+        { ids: [] },
+        'ISSUED',
+      );
       return issuedInvoice;
     } catch (error) {
       throw new BadRequestException(error);
@@ -351,6 +356,12 @@ export class InvoiceService {
             },
           });
 
+        await this.registryService.updateAssignedInvoices(
+          { ids: [id] },
+          { ids: [] },
+          'CANCELLED',
+        );
+
         return cancelledInvoice;
       }
 
@@ -359,8 +370,6 @@ export class InvoiceService {
       throw new BadRequestException(error);
     }
   }
-
-  
 
   @Cron('0 0 * * *')
   async markOverdueInvoices() {

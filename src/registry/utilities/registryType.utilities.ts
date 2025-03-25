@@ -47,6 +47,8 @@ export function rawDataToRegistryType(
   
 ): RegistryType[] {
   return rawData.map((data: RegistryType, index: number) => {
+    console.log(data);
+    
     const missedRequiredProps = checkRequiredProps(data, index);
 
     if (missedRequiredProps.length > 0) {

@@ -104,7 +104,6 @@ export class RegistryPreviewController {
   @Roles('ADMIN', 'DATA_ENTRY')
   @Post('/update')
   async updateNotFinal(
-    @Body() ids: BulkRegistryIds,
     @Body() args: UpdateRegistryDto,
     @Session() session: UserSessionType,
   ) {
@@ -112,7 +111,6 @@ export class RegistryPreviewController {
     const position = session.passport.user.position;
 
     return await this.registryPreviewService.updateNotFinalRegistry(
-      ids,
       args,
       userId,
       position,

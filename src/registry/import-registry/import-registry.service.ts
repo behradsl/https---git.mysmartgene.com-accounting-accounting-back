@@ -42,8 +42,8 @@ export class ImportRegistryService {
         'سری ارسال': 'sendSeries',
       };
 
-      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false });
+      
       const rawHeaders = jsonData[0] as string[];
 
       const mappedHeaders = rawHeaders.map(

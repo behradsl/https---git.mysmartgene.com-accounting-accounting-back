@@ -13,6 +13,7 @@ import {
   IsUUID,
   IsOptional,
   IsArray,
+  IsNumber,
 } from 'class-validator';
 
 export class RegistryIdDto {
@@ -130,12 +131,12 @@ export class CreateRegistryDto {
   @IsOptional()
   resultReadyTime?: string;
 
-  @ApiProperty({ description: 'Send series', example: 'Series 123' })
-  @IsString()
+  @ApiProperty({ description: 'Send series', example: 123 })
+  @IsNumber()
   sendSeries: number;
 }
 
-export class UpdateRegistryDto {
+export class UpdateRegistryDto extends BulkRegistryIds {
   @ApiProperty({ description: 'MOT ID', example: '123abc' })
   @IsString()
   @IsOptional()
@@ -258,8 +259,8 @@ export class UpdateRegistryDto {
   resultReadyTime?: string;
 
   @ApiProperty({ description: 'Send series', example: 'Series 123' })
-  @IsString()
   @IsOptional()
+  @IsNumber()
   sendSeries?: number;
 }
 

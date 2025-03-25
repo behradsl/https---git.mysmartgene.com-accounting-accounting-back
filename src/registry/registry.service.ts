@@ -94,7 +94,6 @@ export class RegistryService {
   }
 
   async updateRegistry(
-    { ids }: BulkRegistryIds,
     args: Partial<UpdateRegistryDto>,
     userId: string,
     position: Position,
@@ -113,7 +112,7 @@ export class RegistryService {
         : null;
 
       const existingRegistries = await this.ormProvider.registry.findMany({
-        where: { id: { in: ids } },
+        where: { id: { in: args.ids } },
       });
 
       if (existingRegistries.length === 0) {
@@ -395,6 +394,7 @@ export class RegistryService {
           registryUpdatedBy: {
             select: { name: true, id: true, email: true, position: true },
           },
+          Invoice: { select: { status: true } },
         },
       });
 
@@ -421,7 +421,7 @@ export class RegistryService {
         );
       }
 
-      if (registry.LaboratoryInvoiceId != null) {
+      if (registry.Invoice !== null && registry.invoiceStatus !== 'CANCELLED') {
         throw new BadRequestException(
           `Registry with MOT ID ${registry.MotId} already has an invoice with number ${registry.Invoice?.invoiceNumber}!`,
         );
